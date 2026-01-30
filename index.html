@@ -11,6 +11,7 @@
     
     <!-- 2. Librerías Externas -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 
     <!-- ========================================== -->
     <!--     3. CONFIGURACIÓN DE FIREBASE           -->
@@ -32,6 +33,9 @@
             measurementId: "G-WKK22W19CT"
         };
 
+        // Exponer config globalmente
+        window.firebaseConfigGlobal = firebaseConfig;
+
         // Inicialización Segura
         try {
             const app = initializeApp(firebaseConfig);
@@ -39,6 +43,7 @@
             window.storage = getStorage(app);
             window.auth = getAuth(app);
             
+            // Login silencioso
             signInAnonymously(window.auth)
                 .then(() => console.log("🔥 Firebase: Conectado (Anónimo)"))
                 .catch(err => console.warn("⚠️ Firebase Auth:", err.message));
@@ -86,9 +91,11 @@
                 const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
                 const storageRef = ref(window.storage, fileName);
                 
+                // Subir archivo
                 const snapshot = await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
+                // Guardar registro
                 await addDoc(collection(window.db, "pending_logos"), {
                     team: teamSelect.value,
                     logoUrl: downloadURL,
@@ -140,6 +147,7 @@
             color: white;
         }
 
+        /* Efectos Visuales */
         .mlb-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -163,6 +171,12 @@
 
         dialog::backdrop { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
         
+        /* Markdown */
+        .prose-invert strong { color: #fbbf24; font-weight: bold; }
+        .prose-invert p { margin-bottom: 0.8em; line-height: 1.6; }
+        .prose-invert ul { list-style: disc; padding-left: 1.2em; margin-bottom: 0.8em; }
+
+        /* Toast Notifications */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out; min-width: 250px; display: flex; align-items: center; gap: 10px; background: #333; border-left: 4px solid #888; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -425,6 +439,7 @@
             }, 4000);
         }
 
+        // --- CARGA DE DATOS ---
         async function fetchWithProxy(url) {
             try {
                 const proxy1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
@@ -521,19 +536,36 @@
                     const teamB = match[12];
 
                     html += `
-                        <div class="mlb-card bg-[#0f172a]/90 p-5 rounded-xl min-w-[220px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
+                        <div class="mlb-card bg-[#0f172a]/90 p-5 rounded-xl min-w-[200px] w-[200px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
+                            
                             <div class="w-full text-center space-y-3">
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamA}">${teamA}</div>
-                                <div class="bg-black/60 rounded-lg py-2 px-6 border border-[#fbbf24]/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
-                                    <span class="font-[Teko] text-4xl text-[#fbbf24] tracking-widest leading-none drop-shadow-md">${scoreA}-${scoreB}</span>
+                                <!-- Equipo A -->
+                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamA}">
+                                    ${teamA}
                                 </div>
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamB}">${teamB}</div>
+                                
+                                <!-- Marcador Central Dorado -->
+                                <div class="bg-black/60 rounded-lg py-2 px-6 border border-pega-gold/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
+                                    <span class="font-sport text-4xl text-pega-gold tracking-widest leading-none drop-shadow-md">
+                                        ${scoreA}-${scoreB}
+                                    </span>
+                                </div>
+                                
+                                <!-- Equipo B -->
+                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamB}">
+                                    ${teamB}
+                                </div>
                             </div>
                         </div>
                     `;
                 });
-                if (last5.length === 0) { scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">Sin resultados recientes.</div>`; } 
-                else { scroller.innerHTML = html; }
+
+                if (last5.length === 0) {
+                    scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">No hay resultados recientes disponibles.</div>`;
+                } else {
+                    scroller.innerHTML = html;
+                }
+
             } catch (e) {
                 console.error("Error loading results", e);
                 scroller.innerHTML = `<div class="text-red-400 text-xs p-2">Error resultados.</div>`;
@@ -622,11 +654,14 @@
             container.innerHTML = html;
         }
 
+        // --- RENDERIZADO TABLA ---
         function renderStandings(data) {
             const container = document.getElementById('data-container');
             const headers = ['POS', 'EQUIPO', 'JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'];
+            
+            // TABLA DESKTOP (Oculta en móviles)
             let html = `
-                <div class="mlb-card rounded-xl overflow-hidden shadow-2xl">
+                <div class="hidden md:block mlb-card rounded-xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="w-full text-base">
                             <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-[Teko] text-xl border-b border-[#fbbf24]/50"><tr>${headers.map(h => `<th class="px-4 py-4 text-center tracking-wider">${h}</th>`).join('')}</tr></thead>
@@ -640,31 +675,15 @@
                                     if(pos==3) { posBadge='bronze-gradient text-white'; }
                                     const get = i => row[i] || '-';
                                     
-                                    // AHORA TODOS LOS NÚMEROS TIENEN CLASE text-3xl COMO 'DIF'
                                     return `<tr class="${rowClass}">
                                         <td class="px-4 py-4"><span class="inline-flex w-8 h-8 rounded-lg items-center justify-center text-sm font-black ${posBadge}">${pos}</span></td>
-                                        
                                         <td class="px-4 py-4 text-left font-bold text-white font-[Teko] text-2xl md:text-3xl tracking-wide uppercase">${get(1)}</td>
-                                        
-                                        <!-- JJ -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl text-white">${get(2)}</td>
-                                        
-                                        <!-- JG (Verde) -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-green-400">${get(3)}</td>
-
-                                        <!-- JE -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl text-slate-400">${get(4)}</td>
-
-                                        <!-- JP (Rojo) -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-red-400">${get(5)}</td>
-
-                                        <!-- CF (Azul) -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl text-blue-400">${get(6)}</td>
-                                        
-                                        <!-- CC (Naranja) -->
                                         <td class="px-4 py-4 text-center font-[Teko] text-3xl text-orange-400">${get(7)}</td>
-                                        
-                                        <!-- DIF (Blanco Resaltado) -->
                                         <td class="px-4 py-4 text-center font-[Teko] font-black text-white text-3xl tracking-widest bg-white/5 rounded-lg">${get(8)}</td>
                                     </tr>`;
                                 }).join('')}
@@ -673,44 +692,44 @@
                     </div>
                 </div>`;
             
-            // Mobile Cards View (Números Grandes)
+            // VISTA MÓVIL (Tarjetas - Visible solo en móvil)
             html += `<div class="md:hidden grid gap-4">${data.map(row => `
                 <div class="mlb-card p-5 rounded-xl border-l-4 ${row[0]==1?'border-[#fbbf24] bg-gradient-to-r from-yellow-500/10 to-transparent':'border-slate-600'}">
                     <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 w-2/3">
                             <span class="font-[Teko] text-4xl text-white/20 font-bold">#${row[0]}</span>
-                            <h3 class="font-black text-white uppercase text-2xl leading-tight tracking-wide">${row[1]}</h3>
+                            <!-- Ajuste para nombres largos en móvil -->
+                            <h3 class="font-black text-white uppercase text-xl leading-tight tracking-wide truncate">${row[1]}</h3>
                         </div>
                         <div class="flex flex-col items-end">
                              <span class="text-[10px] text-slate-400 uppercase tracking-widest">DIF</span>
-                             <span class="font-[Teko] text-3xl font-bold text-[#fbbf24] bg-white/5 px-2 rounded border border-white/10">${row[8]}</span>
+                             <span class="font-[Teko] text-2xl font-bold text-[#fbbf24] bg-white/5 px-2 rounded border border-white/10">${row[8]}</span>
                         </div>
                     </div>
                     <div class="grid grid-cols-4 gap-2 text-center bg-black/30 p-4 rounded-xl border border-white/5">
                         <div>
                             <span class="text-[9px] block text-slate-500 uppercase tracking-wider mb-1">JJ</span>
-                            <b class="text-white text-3xl font-[Teko]">${row[2]}</b>
+                            <b class="text-white text-2xl font-[Teko]">${row[2]}</b>
                         </div>
                         <div>
                             <span class="text-[9px] block text-green-500 uppercase tracking-wider mb-1">GAN</span>
-                            <b class="text-green-400 text-3xl font-[Teko]">${row[3]}</b>
+                            <b class="text-green-400 text-2xl font-[Teko]">${row[3]}</b>
                         </div>
                         <div>
                             <span class="text-[9px] block text-red-500 uppercase tracking-wider mb-1">PER</span>
-                            <b class="text-red-400 text-3xl font-[Teko]">${row[5]}</b>
+                            <b class="text-red-400 text-2xl font-[Teko]">${row[5]}</b>
                         </div>
                         <div>
                             <span class="text-[9px] block text-blue-500 uppercase tracking-wider mb-1">CF</span>
-                            <b class="text-blue-400 text-3xl font-[Teko]">${row[6]}</b>
+                            <b class="text-blue-400 text-2xl font-[Teko]">${row[6]}</b>
                         </div>
                     </div>
                 </div>`).join('')}</div>`;
+                
             container.innerHTML = html;
         }
 
         // --- ANÁLISIS ESTADÍSTICO (SIN IA EXTERNA) ---
-
-        // --- ANÁLISIS ESTADÍSTICO (DIAGNÓSTICO TÁCTICO) ---
         function generateStaticAnalysis() {
             const btn = document.getElementById('btn-analyze');
             const resultContainer = document.getElementById('analysis-result');
@@ -739,7 +758,7 @@
                          return;
                     }
 
-                    let reportsHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                    let reportsHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">`;
 
                     activeTeams.forEach(team => {
                         const pos = team[0];
@@ -757,86 +776,107 @@
                         
                         let statusColor = "border-slate-600";
                         let badgeClass = "bg-slate-600 text-slate-200";
-                        let statusText = "En Desarrollo";
-                        
-                        // Lógica de Diagnóstico (Qué mejorar)
-                        let diagnosis = "";
-                        let tacticalAdvice = "";
+                        let badgeText = "Competitivo";
+                        let analysisTitle = "Análisis General";
+                        let analysisText = "";
+                        let keyStat = "";
 
+                        // --- LÓGICA DE SCOUTING AVANZADO ---
+                        
                         if (jj === 0) {
                             statusColor = "border-slate-500";
-                            statusText = "Por Debutar";
-                            diagnosis = "Sin datos de juego.";
-                            tacticalAdvice = "El equipo está listo para iniciar la temporada. La clave será establecer una rotación de pitcheo sólida desde el día 1.";
-                        } else if (pct >= 0.8) {
-                            statusColor = "border-yellow-500";
-                            badgeClass = "bg-yellow-500 text-black";
-                            statusText = "Potencia de Liga";
-                            diagnosis = `Promedian ${avgRunsFor} carreras por juego.`;
-                            tacticalAdvice = "Están jugando béisbol casi perfecto. El único riesgo es el exceso de confianza. Mantener la intensidad en el corrido de bases asegurará el campeonato.";
-                        } else if (cf > cc && jp > jg) {
-                            // Anotan más de lo que reciben pero pierden (Mala suerte o juegos cerrados perdidos)
-                            statusColor = "border-orange-500";
-                            badgeClass = "bg-orange-600 text-white";
-                            statusText = "Bates Calientes / Defensa Fría";
-                            diagnosis = `Anotan mucho (${avgRunsFor} pp) pero permiten ${avgRunsAgainst}.`;
-                            tacticalAdvice = "Su ofensiva es de campeonato, pero la defensa está regalando juegos. <strong class='text-white'>Necesitan reforzar el cuadro interior y reducir errores</strong> para capitalizar su poder al bate.";
-                        } else if (cc < cf && jg > jp) {
-                            // Ganan sólido
+                            badgeText = "POR DEBUTAR";
+                            analysisTitle = "Expectativa Alta";
+                            analysisText = "El equipo se encuentra en fase de preparación. La clave será iniciar con una rotación de pitcheo sólida.";
+                            keyStat = "0 Juegos";
+                        } 
+                        else if (pct === 1.0 && jj >= 3) {
+                            statusColor = "border-[#fbbf24]"; // Dorado
+                            badgeClass = "bg-[#fbbf24] text-[#0f172a] font-black animate-pulse";
+                            badgeText = "🔥 INVICTO";
+                            analysisTitle = "La Máquina Perfecta";
+                            analysisText = `Nadie ha encontrado la fórmula para vencerlos. Están dominando ambas facetas del juego. Son el rival a vencer indiscutible.`;
+                            keyStat = `Racha ${jg}-0`;
+                        }
+                        else if (pct >= 0.75) {
                             statusColor = "border-green-500";
-                            badgeClass = "bg-green-600 text-white";
-                            statusText = "Contendiente Sólido";
-                            diagnosis = `Balance positivo (+${dif} carreras).`;
-                            tacticalAdvice = "Equipo muy equilibrado. Para asegurar el liderato, deben enfocarse en ganar los duelos directos contra los rivales del Top 3.";
-                        } else if (Math.abs(dif) <= 5 && jp >= jg) {
-                            // Juegos cerrados
+                            badgeClass = "bg-green-600 text-white font-bold";
+                            badgeText = "ELITE";
+                            analysisTitle = "Candidato al Título";
+                            analysisText = `Sólidez total. Ganan 3 de cada 4 juegos. Su diferencial de carreras (+${dif}) indica que ganan con autoridad, no por suerte.`;
+                            keyStat = `Dif +${dif}`;
+                        }
+                        else if (avgRunsFor >= 10 && avgRunsAgainst >= 8) {
+                            statusColor = "border-orange-500";
+                            badgeClass = "bg-orange-600 text-white font-bold";
+                            badgeText = "CAÑONEROS";
+                            analysisTitle = "Ofensiva Explosiva / Defensa Frágil";
+                            analysisText = `Sus juegos son festivales de batazos. Anotan mucho (${avgRunsFor} pp), pero su defensa permite demasiado. Si ajustan el guante, suben al top.`;
+                            keyStat = `${avgRunsFor} Carreras/Juego`;
+                        }
+                        else if (avgRunsAgainst <= 4 && pct > 0.4) {
                             statusColor = "border-blue-500";
-                            badgeClass = "bg-blue-600 text-white";
-                            statusText = "Competitivo";
-                            diagnosis = "Juegos definidos por la mínima.";
-                            tacticalAdvice = "Están perdiendo juegos apretados. <strong class='text-white'>Les falta el 'batazo oportuno'</strong> con gente en base. Trabajar en situaciones de presión cambiará esos resultados.";
-                        } else if (cf < (cc * 0.6)) {
-                            // Problema ofensivo grave
+                            badgeClass = "bg-blue-600 text-white font-bold";
+                            badgeText = "MURALLA";
+                            analysisTitle = "Defensa de Campeonato";
+                            analysisText = `Es difícil anotarles. Su pitcheo y cuadro son de élite (solo ${avgRunsAgainst} C permitidas). Si su bateo despierta, nadie los para.`;
+                            keyStat = `${avgRunsAgainst} C. Permitidas/J`;
+                        }
+                        else if (pct >= 0.4 && pct < 0.75) {
+                            statusColor = "border-indigo-400";
+                            badgeClass = "bg-indigo-500 text-white";
+                            badgeText = "EN LA PELEA";
+                            analysisTitle = "Equipo Peligroso";
+                            analysisText = `Un equipo equilibrado que sabe competir. Necesitan ganar los duelos directos contra los líderes para escalar posiciones en la tabla.`;
+                            keyStat = `Pct .${(pct*1000).toFixed(0)}`;
+                        }
+                        else {
                             statusColor = "border-red-500";
                             badgeClass = "bg-red-600 text-white";
-                            statusText = "Alerta Ofensiva";
-                            diagnosis = `Solo ${avgRunsFor} carreras por juego.`;
-                            tacticalAdvice = "El pitcheo no puede hacerlo todo solo. <strong class='text-white'>Urge despertar los bates</strong>; necesitan ser más agresivos al primer lanzamiento y embasarse para generar presión.";
-                        } else {
-                            statusColor = "border-slate-500";
-                            statusText = "En Reconstrucción";
-                            diagnosis = `Diferencial de ${dif}.`;
-                            tacticalAdvice = "Temporada de aprendizaje. Enfocarse en los fundamentos defensivos para evitar innings grandes del rival y construir confianza inning a inning.";
+                            badgeText = "EN ALERTA";
+                            analysisTitle = "Urgencia Defensiva";
+                            analysisText = `Han permitido ${cc} carreras en total. La prioridad debe ser minimizar errores no forzados y controlar los innings grandes del rival.`;
+                            keyStat = `${cc} C. en Contra`;
                         }
 
+                        // --- FACTOR X (LÍDERES) ---
                         const leaders = teamLeadersInfo[name.toUpperCase().trim()];
                         let leaderHTML = "";
                         if (leaders && leaders.length > 0) {
-                            leaderHTML = `<div class="mt-3 pt-2 border-t border-white/10"><p class="text-[10px] text-[#fbbf24] font-bold uppercase flex items-center gap-1 mb-1"><i data-lucide="star" class="w-3 h-3"></i> Jugador Clave</p><ul class="text-xs text-white list-disc list-inside">${leaders.map(l => `<li>${l}</li>`).join('')}</ul></div>`;
+                            leaderHTML = `
+                                <div class="mt-3 pt-2 border-t border-white/10 bg-white/5 -mx-4 -mb-4 px-4 py-2 rounded-b-lg">
+                                    <p class="text-[10px] text-[#fbbf24] font-bold uppercase flex items-center gap-1 mb-1">
+                                        <i data-lucide="star" class="w-3 h-3 fill-current"></i> Factor X
+                                    </p>
+                                    <div class="text-xs text-slate-300">
+                                        ${leaders.map(l => `<span class="block truncate">• ${l}</span>`).join('')}
+                                    </div>
+                                </div>
+                            `;
                         }
 
                         reportsHTML += `
-                            <div class="bg-slate-800/50 border-l-4 ${statusColor} p-4 rounded-r-xl hover:bg-slate-800 transition shadow-lg flex flex-col h-full animate-fadeIn">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="flex items-center gap-3">
-                                        <span class="font-[Teko] text-2xl text-slate-500 w-6 text-center">#${pos}</span>
-                                        <div>
-                                            <h4 class="text-white font-black text-lg leading-tight uppercase tracking-wide truncate w-32 md:w-48" title="${name}">${name}</h4>
-                                            <span class="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${statusText}</span>
+                            <div class="bg-[#0f172a] border border-white/10 border-l-4 ${statusColor} p-4 rounded-r-xl shadow-lg flex flex-col h-full animate-fadeIn group hover:bg-[#1e293b] transition duration-300">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div class="flex items-center gap-3 overflow-hidden">
+                                        <div class="font-[Teko] text-3xl text-slate-600 w-8 text-center leading-none">#${pos}</div>
+                                        <div class="min-w-0">
+                                            <h4 class="text-white font-black text-lg leading-tight uppercase tracking-wide truncate" title="${name}">${name}</h4>
+                                            <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${badgeText}</span>
                                         </div>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="block text-2xl font-[Teko] font-bold text-white">${jg}-${jp}</span>
                                     </div>
                                 </div>
                                 
-                                <div class="mb-2">
-                                    <p class="text-xs text-slate-400 font-bold uppercase mb-1">Diagnóstico:</p>
-                                    <p class="text-sm text-slate-200">${diagnosis}</p>
+                                <div class="mb-3 flex-grow">
+                                    <p class="text-xs text-[#fbbf24] font-bold uppercase mb-1 flex items-center gap-1">
+                                        <i data-lucide="activity" class="w-3 h-3"></i> ${analysisTitle}
+                                    </p>
+                                    <p class="text-sm text-slate-300 leading-relaxed">${analysisText}</p>
                                 </div>
-                                <div class="mb-2 flex-grow">
-                                    <p class="text-xs text-[#fbbf24] font-bold uppercase mb-1">Área de Mejora:</p>
-                                    <p class="text-sm text-slate-300 leading-snug">${tacticalAdvice}</p>
+
+                                <div class="flex items-center justify-between text-xs text-slate-500 font-mono bg-black/30 p-2 rounded mb-1">
+                                    <span>Récord: <strong class="text-white">${jg}-${jp}</strong></span>
+                                    <span>Dato Clave: <strong class="text-white">${keyStat}</strong></span>
                                 </div>
 
                                 ${leaderHTML}
@@ -845,17 +885,39 @@
                     });
 
                     reportsHTML += `</div>`;
-                    contentDiv.innerHTML = reportsHTML;
+                    
+                    // Header del reporte
+                    const headerHTML = `
+                        <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+                            <div>
+                                <h3 class="font-[Teko] text-3xl text-white uppercase tracking-wide">Reporte de Scouting</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Análisis Táctico de la Jornada</p>
+                            </div>
+                            <div class="text-right hidden sm:block">
+                                <span class="text-xs text-slate-500 block">Equipos Analizados</span>
+                                <span class="text-xl font-black text-white font-[Teko]">${activeTeams.length}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    contentDiv.innerHTML = headerHTML + reportsHTML;
                     resultContainer.classList.remove('hidden');
-                    resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    // Scroll suave hacia el resultado
+                    setTimeout(() => {
+                        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                    
                     lucide.createIcons();
+
                 } catch (e) {
                     console.error("Error análisis:", e);
+                    showToast("Error al generar análisis.", "error");
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
-            }, 600);
+            }, 800); 
         }
 
         function openUploadModal() {
