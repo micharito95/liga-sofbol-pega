@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liga de Softbol PEGA - Grupo Super A-</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@400;500;700&family=Teko:wght@600&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- ========================================== -->
+    <!--     CONFIGURACIÓN DE FIREBASE (OFICIAL)    -->
+    <!-- ========================================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // ✅✅✅ TUS LLAVES REALES (Ya configuradas) ✅✅✅
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiyx9qNhBgXknIsM3kmanksNsOKi4p090",
+            authDomain: "liga-softbol-pega.firebaseapp.com",
+            projectId: "liga-softbol-pega",
+            storageBucket: "liga-softbol-pega.firebasestorage.app",
+            messagingSenderId: "123479362384",
+            appId: "1:123479362384:web:90521fca4eb4c5fa3e3a55",
+            measurementId: "G-WKK22W19CT"
+        };
+
+        // Inicialización segura
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.db = getFirestore(app);
+            window.storage = getStorage(app);
+            window.auth = getAuth(app);
+            
+            // Login anónimo automático para permitir subidas
+            signInAnonymously(window.auth)
+                .then(() => console.log("✅ Conectado a Firebase como usuario anónimo"))
+                .catch((err) => console.warn("⚠️ Aviso Auth:", err.message));
+
+        } catch (e) {
+            console.error("❌ Error iniciando Firebase:", e);
+        }
+
+        // Función de subida (Zona Capitanes)
+        window.handleUpload = async function(event) {
+            event.preventDefault();
+            
+            if (!window.storage || !window.db) {
+                alert("⚠️ Firebase no se inició correctamente. Recarga la página.");
+                return;
+            }
+
+            const teamSelect = document.getElementById('teamSelect');
+            const fileInput = document.getElementById('logoFile');
+            const submitBtn = document.querySelector('#uploadForm button[type="submit"]');
+
+            const teamName = teamSelect.value;
+            const file = fileInput.files[0];
+
+            if (!teamName || !file) {
+                alert("⚠️ Por favor selecciona tu equipo y una imagen.");
+                return;
+            }
+
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo...`;
+            lucide.createIcons();
+
+            try {
+                const cleanName = teamName.replace(/[^a-zA-Z0-9]/g, '_');
+                const fileName = `logos/${cleanName}_${Date.now()}`;
+                const storageRef = ref(window.storage, fileName);
+
+                const snapshot = await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(snapshot.ref);
+
+                await addDoc(collection(window.db, "pending_logos"), {
+                    team: teamName,
+                    logoUrl: downloadURL,
+                    status: "pending",
+                    createdAt: serverTimestamp()
+                });
+
+                alert("✅ ¡Éxito! Tu logo ha sido enviado a revisión.");
+                document.getElementById('uploadModal').close();
+                document.getElementById('uploadForm').reset();
+
+            } catch (error) {
+                console.error("Error subiendo:", error);
+                let msg = error.message;
+                if(error.code === 'storage/unauthorized') msg = "Permiso denegado. Verifica las Reglas de Storage en Firebase Console.";
+                alert("❌ Error: " + msg);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                lucide.createIcons();
+            }
+        }
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pega: { navy: '#0f172a', blue: '#1e3a8a', gold: '#fbbf24', red: '#dc2626' }
+                    },
+                    fontFamily: {
+                        'logo': ['"Black Ops One"', 'cursive'],
+                        'sport': ['"Teko"', 'sans-serif'],
+                        'body': ['"Roboto"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f1f5f9; }
+        .hero-pattern { background-color: #0f172a; background-image: radial-gradient(#1e3a8a 1px, transparent 1px); background-size: 20px 20px; }
+        .table-header { background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%); border-bottom: 4px solid #fbbf24; }
+        .pos-1 { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .pos-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; border: 2px solid #fff; }
+        .pos-3 { background: linear-gradient(135deg, #b45309, #78350f); color: #fff; border: 2px solid #fff; }
+        .pos-default { background-color: #e2e8f0; color: #475569; font-weight: bold; }
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        
+        /* Modal Styles */
+        dialog::backdrop { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
+        dialog[open] { animation: zoomIn 0.3s ease-out; }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-pega-navy text-white shadow-xl border-b border-white/10 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3 group">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-20 group-hover:opacity-40 transition"></div>
+                        <div class="relative bg-white p-2 rounded-full border-2 border-pega-gold">
+                            <i data-lucide="baseball" class="w-8 h-8 text-pega-blue fill-current"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-logo text-2xl tracking-wider text-white leading-none">LIGA PEGA</span>
+                        <span class="text-[10px] text-pega-gold tracking-[0.2em] uppercase font-bold">Pablo Eduardo Gutierrez Alvarez</span>
+                    </div>
+                </div>
+                <button onclick="fetchData()" class="group flex items-center gap-2 px-5 py-2 bg-pega-red hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg transform hover:-translate-y-0.5 border border-red-500">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-700"></i>
+                    <span class="hidden sm:inline">ACTUALIZAR</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="hero-pattern text-white relative overflow-hidden shadow-2xl pb-16 pt-12 clip-path-slant">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-pega-blue rounded-full filter blur-[100px] opacity-30"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-pega-gold rounded-full filter blur-[80px] opacity-20"></div>
+        <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
+            <div class="inline-block mb-3 animate-bounce">
+                <span class="bg-pega-gold text-pega-navy font-black text-lg md:text-xl px-6 py-1 rounded transform -skew-x-12 inline-block border-2 border-white shadow-lg">
+                    GRUPO SUPER A-
+                </span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-sport font-bold uppercase tracking-wide text-white drop-shadow-lg leading-none">
+                TABLA GENERAL
+            </h1>
+            <div class="flex items-center justify-center gap-4 mt-6 opacity-80">
+                <div class="h-1 w-12 bg-pega-red rounded-full"></div>
+                <div class="text-pega-gold"><i data-lucide="trophy" class="w-6 h-6"></i></div>
+                <div class="h-1 w-12 bg-pega-red rounded-full"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 w-full -mt-10 relative z-20 pb-12">
+        <div id="loader" class="bg-white p-8 rounded-xl shadow-xl text-center mx-auto max-w-md hidden border-t-4 border-pega-gold">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-pega-navy border-t-pega-gold mx-auto mb-4"></div>
+            <p class="text-pega-navy font-bold text-lg">Cargando Estadísticas...</p>
+        </div>
+        
+        <!-- Contenedor de Datos -->
+        <div id="data-container" class="fade-in space-y-6"></div>
+        
+        <!-- Noticias -->
+        <div class="mt-8 bg-white rounded-lg shadow-xl border-l-4 border-pega-gold p-6 relative overflow-hidden fade-in">
+            <div class="flex flex-col md:flex-row items-start gap-4 relative z-10">
+                <div class="bg-pega-navy p-4 rounded-full text-pega-gold shrink-0 shadow-lg">
+                    <i data-lucide="megaphone" class="w-8 h-8"></i>
+                </div>
+                <div class="flex-grow">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+                        <h3 class="font-sport text-3xl text-pega-navy uppercase flex items-center gap-3">
+                            Últimos Movimientos
+                            <span class="text-xs font-sans font-bold bg-pega-red text-white px-3 py-1 rounded-full animate-pulse tracking-wide">EN VIVO</span>
+                        </h3>
+                        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            <span id="update-time">Actualizando fecha...</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 hover:bg-blue-50 transition border border-transparent hover:border-blue-100">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-green-600 mt-0.5"></i>
+                            <p class="text-slate-700"><span class="font-bold text-pega-navy">Tabla actualizada</span> con los resultados oficiales.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DE CARGA DE LOGO -->
+    <dialog id="uploadModal" class="rounded-xl shadow-2xl p-0 w-full max-w-md bg-white backdrop:bg-gray-900/50">
+        <div class="bg-pega-navy text-white p-4 flex justify-between items-center">
+            <h3 class="font-sport text-xl flex items-center gap-2">
+                <i data-lucide="shield" class="w-5 h-5 text-pega-gold"></i>
+                ZONA DE CAPITANES
+            </h3>
+            <button onclick="document.getElementById('uploadModal').close()" class="text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div class="p-6">
+            <p class="text-sm text-gray-500 mb-4">Sube el logo oficial de tu equipo para que aparezca en la tabla general.</p>
+            
+            <form id="uploadForm" class="space-y-4" onsubmit="handleUpload(event)">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nombre del Equipo</label>
+                    <select id="teamSelect" class="w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-2 focus:ring-pega-blue focus:border-pega-blue outline-none">
+                        <option value="">Selecciona tu equipo...</option>
+                        <!-- Se llenará dinámicamente con JS -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Logo (Imagen)</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="logoFile" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mb-2"></i>
+                                <p class="text-xs text-gray-500">Click para subir imagen (JPG, PNG)</p>
+                            </div>
+                            <input id="logoFile" type="file" class="hidden" accept="image/*" />
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full text-white bg-pega-blue hover:bg-blue-800 font-bold rounded-lg text-sm px-5 py-2.5 text-center flex items-center justify-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Enviar Logo
+                </button>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Footer -->
+    <footer class="bg-pega-navy text-slate-400 py-10 border-t-4 border-pega-red">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-center md:text-left">
+                <h3 class="font-logo text-2xl text-white">LIGA PEGA</h3>
+                <p class="text-sm mt-1">Softbol de alto nivel.</p>
+            </div>
+            <button onclick="openUploadModal()" class="flex items-center gap-2 bg-white/10 hover:bg-pega-gold hover:text-pega-navy text-white px-4 py-2 rounded-full transition font-bold text-sm border border-white/20">
+                <i data-lucide="shield" class="w-4 h-4"></i>
+                ZONA DE CAPITANES
+            </button>
+            <div class="flex gap-4">
+                <div class="bg-white/5 p-3 rounded-full hover:bg-pega-gold hover:text-pega-navy transition cursor-pointer">
+                    <i data-lucide="facebook" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs mt-8 pt-4 border-t border-white/10">
+            &copy; 2025 Liga de Softbol PEGA.
+        </div>
+    </footer>
+
+    <script>
+        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=1141503939&single=true&output=csv";
+        
+        const HEADERS = [
+            { key: 'pos', label: 'POS', align: 'center' }, { key: 'equipo', label: 'EQUIPO', align: 'left' },
+            { key: 'jj', label: 'JJ', align: 'center' }, { key: 'jg', label: 'JG', align: 'center' },
+            { key: 'je', label: 'JE', align: 'center' }, { key: 'jp', label: 'JP', align: 'center' },
+            { key: 'cf', label: 'CF', align: 'center' }, { key: 'cc', label: 'CC', align: 'center' },
+            { key: 'dif', label: 'DIF', align: 'center' }
+        ];
+
+        let loadedTeams = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            fetchData();
+        });
+
+        function openUploadModal() {
+            const modal = document.getElementById('uploadModal');
+            const select = document.getElementById('teamSelect');
+            if(loadedTeams.length > 0) {
+                select.innerHTML = '<option value="">Selecciona tu equipo...</option>';
+                loadedTeams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team;
+                    option.textContent = team;
+                    select.appendChild(option);
+                });
+            }
+            modal.showModal();
+        }
+
+        async function fetchData() {
+            const container = document.getElementById('data-container');
+            const loader = document.getElementById('loader');
+            loader.style.display = 'block';
+            container.style.opacity = '0.5';
+
+            try {
+                let csvText;
+                
+                // 1. Intento Directo (Funciona en Web)
+                try {
+                    const response = await fetch(SHEET_CSV_URL);
+                    if (!response.ok) throw new Error("Fallo directo");
+                    csvText = await response.text();
+                } catch (e) {
+                    console.warn("Intento directo falló (posiblemente por estar en local), activando puente proxy...");
+                    
+                    // 2. Intento con Puente (Funciona en Local)
+                    // Usamos 'allorigins' para saltar el bloqueo CORS del navegador
+                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(SHEET_CSV_URL)}`;
+                    const responseProxy = await fetch(proxyUrl);
+                    if (!responseProxy.ok) throw new Error("Fallo también el puente");
+                    csvText = await responseProxy.text();
+                }
+
+                const rows = parseCSV(csvText);
+
+                // Filtro mejorado
+                let cleanRows = rows.filter(row => {
+                    if (!row || row.length < 2) return false;
+                    const pos = row[0].trim();
+                    const team = row[1].trim();
+                    if (team === '') return false;
+                    if (pos.toUpperCase() === 'POS' || team.toUpperCase() === 'EQUIPO') return false;
+                    if (pos === '-' || team.toUpperCase().includes('GRUPO') || row[2] === 'JJ') return false;
+                    return true;
+                });
+
+                loadedTeams = cleanRows.map(row => row[1]);
+                renderData(cleanRows);
+                updateLastModifiedDate();
+
+            } catch (error) {
+                console.error("Detalle del error:", error);
+                container.innerHTML = `
+                    <div class="bg-red-100 text-red-700 p-6 rounded-lg text-center border-2 border-red-200 shadow-md">
+                        <i data-lucide="alert-triangle" class="w-12 h-12 mx-auto mb-3 text-red-500"></i>
+                        <h3 class="font-bold text-lg mb-1">No pudimos cargar la tabla</h3>
+                        <p class="text-sm text-red-600">Verifica tu conexión a internet.</p>
+                    </div>`;
+                lucide.createIcons();
+            } finally {
+                loader.style.display = 'none';
+                container.style.opacity = '1';
+            }
+        }
+
+        function updateLastModifiedDate() {
+            const dateElement = document.getElementById('update-time');
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            let fechaTexto = now.toLocaleDateString('es-MX', options);
+            fechaTexto = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
+            dateElement.textContent = fechaTexto;
+        }
+
+        function parseCSV(text) {
+            return text.split('\n').map(line => line.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
+        }
+
+        function renderData(data) {
+            const container = document.getElementById('data-container');
+            if (data.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 p-10 bg-white rounded shadow">No se encontraron datos en la hoja.</div>';
+                return;
+            }
+
+            let html = `
+                <div class="hidden md:block bg-white rounded-lg shadow-2xl overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-sm">
+                            <thead class="table-header text-white font-sport text-lg tracking-wide">
+                                <tr>${HEADERS.map(h => `<th class="px-6 py-4 font-normal ${h.align==='center'?'text-center':'text-left'}">${h.label}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">${data.map(row => renderRow(row)).join('')}</tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            html += `<div class="md:hidden grid grid-cols-1 gap-4">${data.map(row => renderCard(row)).join('')}</div>`;
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderRow(row) {
+            const get = (i) => row[i] || '-';
+            const pos = get(0);
+            let badge = 'pos-default';
+            if(pos==1) badge='pos-1'; if(pos==2) badge='pos-2'; if(pos==3) badge='pos-3';
+
+            return `
+                <tr class="hover:bg-blue-50 transition group font-medium text-slate-700">
+                    <td class="px-6 py-4 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${badge}">${pos}</span></td>
+                    <td class="px-6 py-4 font-bold text-pega-navy text-base group-hover:text-pega-blue transition uppercase tracking-tight">${get(1)}</td>
+                    <td class="px-6 py-4 text-center">${get(2)}</td>
+                    <td class="px-6 py-4 text-center text-green-600 font-bold bg-green-50 rounded">${get(3)}</td>
+                    <td class="px-6 py-4 text-center text-slate-500">${get(4)}</td>
+                    <td class="px-6 py-4 text-center text-red-500 bg-red-50 rounded">${get(5)}</td>
+                    <td class="px-6 py-4 text-center text-blue-600 font-mono">${get(6)}</td>
+                    <td class="px-6 py-4 text-center text-orange-600 font-mono">${get(7)}</td>
+                    <td class="px-6 py-4 text-center font-black text-lg text-pega-navy">${get(8)}</td>
+                </tr>
+            `;
+        }
+
+        function renderCard(row) {
+            const get = (i) => row[i] || '-';
+            const pos = get(0);
+            let borderClass = 'border-l-4 border-slate-200';
+            if(pos==1) borderClass='border-l-4 border-pega-gold'; if(pos==2) borderClass='border-l-4 border-slate-400'; if(pos==3) borderClass='border-l-4 border-orange-600';
+
+            return `
+                <div class="bg-white rounded-r-lg shadow-md p-4 relative overflow-hidden ${borderClass}">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                             <span class="text-3xl font-sport text-slate-200 font-bold italic">#${pos}</span>
+                             <div><h3 class="font-black text-lg text-pega-navy uppercase leading-tight">${get(1)}</h3></div>
+                        </div>
+                        <div class="text-right"><span class="text-xs font-bold text-white bg-pega-navy px-2 py-1 rounded">DIF: ${get(8)}</span></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center text-sm bg-slate-50 p-2 rounded-lg mb-2">
+                        <div><span class="block text-[10px] text-slate-400 uppercase">JJ</span><strong class="text-slate-700 text-lg">${get(2)}</strong></div>
+                        <div><span class="block text-[10px] text-green-600 uppercase">JG</span><strong class="text-green-600 text-lg">${get(3)}</strong></div>
+                        <div><span class="block text-[10px] text-slate-500 uppercase">JE</span><strong class="text-slate-500 text-lg">${get(4)}</strong></div>
+                        <div><span class="block text-[10px] text-red-500 uppercase">JP</span><strong class="text-red-500 text-lg">${get(5)}</strong></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-center text-xs">
+                        <div class="bg-blue-50 p-1 rounded"><span class="text-blue-500 font-bold">CF: ${get(6)}</span></div>
+                        <div class="bg-orange-50 p-1 rounded"><span class="text-orange-500 font-bold">CC: ${get(7)}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
