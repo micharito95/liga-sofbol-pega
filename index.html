@@ -7,11 +7,10 @@
     
     <!-- 1. Estilos y Fuentes -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@400;500;700;900&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@400;500;700;900&family=Teko:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- 2. Librerías Externas -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 
     <!-- ========================================== -->
     <!--     3. CONFIGURACIÓN DE FIREBASE           -->
@@ -85,7 +84,7 @@
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo...`;
-            lucide.createIcons();
+            if(typeof lucide !== 'undefined') lucide.createIcons();
 
             try {
                 const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
@@ -112,27 +111,35 @@
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalBtnText;
-                lucide.createIcons();
+                if(typeof lucide !== 'undefined') lucide.createIcons();
             }
         }
     </script>
 
     <!-- 4. Estilos Personalizados -->
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        pega: { navy: '#0f172a', blue: '#1e3a8a', gold: '#fbbf24', red: '#dc2626' }
-                    },
-                    fontFamily: {
-                        'logo': ['"Black Ops One"', 'cursive'],
-                        'sport': ['"Teko"', 'sans-serif'],
-                        'body': ['"Roboto"', 'sans-serif'],
+        // Configuración segura de Tailwind
+        function initTailwind() {
+            if (typeof tailwind !== 'undefined') {
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            colors: {
+                                pega: { navy: '#0f172a', blue: '#1e3a8a', gold: '#fbbf24', red: '#dc2626' }
+                            },
+                            fontFamily: {
+                                'logo': ['"Black Ops One"', 'cursive'],
+                                'sport': ['"Teko"', 'sans-serif'],
+                                'body': ['"Roboto"', 'sans-serif'],
+                            }
+                        }
                     }
                 }
+            } else {
+                setTimeout(initTailwind, 50);
             }
         }
+        initTailwind();
     </script>
 
     <style>
@@ -145,9 +152,18 @@
             background-attachment: fixed;
             background-position: center;
             color: white;
+            transition: all 0.3s ease;
         }
 
-        /* Efectos Visuales */
+        /* Clase para simular vista móvil */
+        body.mobile-view {
+            max-width: 400px;
+            margin: 0 auto;
+            border-left: 1px solid #333;
+            border-right: 1px solid #333;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
         .mlb-card {
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -158,7 +174,7 @@
         .silver-gradient { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); }
         .bronze-gradient { background: linear-gradient(135deg, #fdba74 0%, #c2410c 100%); }
 
-        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 3px; }
 
@@ -171,12 +187,6 @@
 
         dialog::backdrop { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
         
-        /* Markdown */
-        .prose-invert strong { color: #fbbf24; font-weight: bold; }
-        .prose-invert p { margin-bottom: 0.8em; line-height: 1.6; }
-        .prose-invert ul { list-style: disc; padding-left: 1.2em; margin-bottom: 0.8em; }
-
-        /* Toast Notifications */
         #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
         .toast { padding: 12px 20px; border-radius: 8px; color: white; font-weight: 500; box-shadow: 0 4px 10px rgba(0,0,0,0.5); animation: slideIn 0.3s ease-out; min-width: 250px; display: flex; align-items: center; gap: 10px; background: #333; border-left: 4px solid #888; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
@@ -195,26 +205,30 @@
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-20 items-center">
                 <!-- Logo con acción de volver al inicio -->
-                <div class="flex items-center gap-4 group cursor-pointer" onclick="goHome()">
+                <div class="flex items-center gap-3 group cursor-pointer" onclick="goHome()">
                     <div class="relative">
                         <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
-                        <div class="relative bg-white p-2 rounded-full border-2 border-pega-gold transform group-hover:scale-110 transition duration-300">
-                            <i data-lucide="baseball" class="w-8 h-8 text-pega-blue fill-current"></i>
+                        <div class="relative bg-white p-1.5 rounded-full border-2 border-pega-gold transform group-hover:scale-110 transition duration-300">
+                            <i data-lucide="baseball" class="w-6 h-6 text-pega-blue fill-current"></i>
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-logo text-3xl tracking-wider text-white leading-none drop-shadow-md">LIGA PEGA</span>
-                        <span class="text-[10px] text-pega-gold tracking-[0.3em] uppercase font-bold">Official Stats</span>
+                        <span class="font-logo text-2xl md:text-3xl tracking-wider text-white leading-none drop-shadow-md">LIGA PEGA</span>
+                        <span class="text-[8px] md:text-[10px] text-pega-gold tracking-[0.2em] uppercase font-bold">Official Stats</span>
                     </div>
                 </div>
                 
-                <!-- Botón Volver / Refresh -->
+                <!-- Botones Nav -->
                 <div class="flex gap-2">
                     <button id="back-btn" onclick="goHome()" class="hidden p-2 bg-white/10 rounded-full hover:bg-white/20 transition text-white">
-                        <i data-lucide="home" class="w-6 h-6"></i>
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                    </button>
+                    <!-- Icono Celular para Evaluar -->
+                    <button onclick="toggleMobileView()" class="p-2 bg-white/5 rounded-full hover:bg-white/10 transition text-slate-300 hover:text-white" title="Vista Celular">
+                        <i data-lucide="smartphone" class="w-5 h-5"></i>
                     </button>
                     <button onclick="loadCurrentTab()" class="p-2 hover:bg-white/10 rounded-full transition text-pega-gold hover:text-white hover:rotate-180 duration-700">
-                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                        <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
@@ -222,82 +236,80 @@
     </nav>
 
     <!-- Hero -->
-    <div class="relative pt-10 pb-6 overflow-hidden">
+    <div class="relative pt-6 pb-4 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <div class="inline-flex items-center justify-center gap-3 mb-6 animate-pulse">
-                <div class="h-px w-12 bg-gradient-to-r from-transparent to-pega-gold"></div>
-                <span class="text-pega-gold text-xs font-bold tracking-[0.2em] uppercase">11 VA TEMPORADA</span>
-                <div class="h-px w-12 bg-gradient-to-l from-transparent to-pega-gold"></div>
+            <div class="inline-flex items-center justify-center gap-3 mb-4 animate-pulse">
+                <div class="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-pega-gold"></div>
+                <span class="text-pega-gold text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">11 VA TEMPORADA</span>
+                <div class="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-pega-gold"></div>
             </div>
             <h1 class="text-4xl md:text-6xl font-sport font-bold uppercase tracking-wide text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] mb-2 leading-none">
                 LIGA DE SOFBOL<br><span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">ROMEROS LEAGUE</span>
             </h1>
-            <p class="text-sm md:text-base text-pega-gold/90 font-bold tracking-widest uppercase mb-8 opacity-80">(¡ANIMO MI REY!)</p>
+            <p class="text-xs md:text-base text-pega-gold/90 font-bold tracking-widest uppercase mb-6 opacity-80">(¡ANIMO MI REY!)</p>
 
             <!-- MENÚ PRINCIPAL (HOME) -->
-            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8 fade-in relative z-30">
+            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto mt-4 fade-in relative z-30">
                 <!-- Botón Standings -->
-                <button onclick="enterSection('standing')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
+                <button onclick="enterSection('standing')" class="mlb-card group relative p-6 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <h2 class="text-4xl font-sport text-white mb-2 group-hover:text-pega-gold transition">STANDINGS</h2>
-                            <p class="text-slate-400 text-sm">Tablas generales por grupo</p>
+                            <h2 class="text-3xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">STANDINGS</h2>
+                            <p class="text-slate-400 text-xs md:text-sm">Tablas generales por grupo</p>
                         </div>
-                        <i data-lucide="list" class="w-12 h-12 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
+                        <i data-lucide="list" class="w-10 h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
                     </div>
                 </button>
                 <!-- Botón Líderes -->
-                <button onclick="enterSection('leader')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
+                <button onclick="enterSection('leader')" class="mlb-card group relative p-6 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-red/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <h2 class="text-4xl font-sport text-white mb-2 group-hover:text-pega-gold transition">LÍDERES</h2>
-                            <p class="text-slate-400 text-sm">AVG, HR, JG y estadísticas</p>
+                            <h2 class="text-3xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">LÍDERES</h2>
+                            <p class="text-slate-400 text-xs md:text-sm">AVG, HR, JG y estadísticas</p>
                         </div>
-                        <i data-lucide="trophy" class="w-12 h-12 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
+                        <i data-lucide="trophy" class="w-10 h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
                     </div>
                 </button>
             </div>
 
             <!-- NAVEGACIÓN SECUNDARIA (PESTAÑAS) -->
             <div id="tabs-navigation" class="hidden fade-in relative z-30">
-                <div class="flex flex-wrap justify-center gap-3" id="tabs-container"></div>
+                <div class="flex flex-wrap justify-center gap-2" id="tabs-container"></div>
             </div>
         </div>
     </div>
 
     <!-- Main -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 w-full relative z-20 pb-12">
+    <main class="flex-grow max-w-7xl mx-auto px-2 md:px-4 w-full relative z-20 pb-12">
         
         <div id="loader" class="mlb-card p-12 rounded-2xl text-center mx-auto max-w-md hidden mt-8">
             <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pega-gold mx-auto mb-6"></div>
             <p class="text-white font-sport text-2xl tracking-wide animate-pulse">CARGANDO DATOS...</p>
         </div>
         
-        <!-- SECCIÓN RESULTADOS RECIENTES (J2:O100) - Solo visible en Super A- -->
+        <!-- SECCIÓN RESULTADOS RECIENTES (J2:O100) -->
         <div id="recent-results" class="hidden fade-in mb-8">
             <div class="flex items-center justify-between mb-4 px-2">
-                <h3 class="font-sport text-2xl text-pega-gold uppercase flex items-center gap-2">
-                    <i data-lucide="calendar-days" class="w-6 h-6"></i> Resultados Recientes
+                <h3 class="font-sport text-xl md:text-2xl text-pega-gold uppercase flex items-center gap-2">
+                    <i data-lucide="calendar-days" class="w-5 h-5 md:w-6 md:h-6"></i> Resultados Recientes
                 </h3>
             </div>
             <!-- Contenedor con Scroll Horizontal -->
-            <div id="results-scroller" class="flex gap-4 overflow-x-auto custom-scrollbar pb-4">
-                <!-- Se inyectan con JS -->
-            </div>
+            <div id="results-scroller" class="flex gap-4 overflow-x-auto custom-scrollbar pb-4 px-1"></div>
         </div>
 
         <div id="data-container" class="hidden fade-in space-y-8 mt-4"></div>
 
-        <!-- BOTÓN DE ANÁLISIS ESTADÍSTICO (SIN IA EXTERNA) -->
+        <!-- BOTÓN DE ANÁLISIS ESTADÍSTICO -->
         <div id="analysis-wrapper" class="hidden mt-8 max-w-5xl mx-auto fade-in">
-            <button onclick="generateStaticAnalysis()" id="btn-analyze" class="w-full bg-gradient-to-r from-pega-blue to-pega-navy hover:from-blue-600 hover:to-blue-800 text-white font-black py-4 rounded-xl shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-3 text-xl border border-white/20 group cursor-pointer z-30 relative">
-                <i data-lucide="bar-chart-3" class="w-6 h-6 text-pega-gold group-hover:animate-pulse"></i>
+            <button onclick="generateStaticAnalysis()" id="btn-analyze" class="w-full bg-gradient-to-r from-pega-blue to-pega-navy hover:from-blue-600 hover:to-blue-800 text-white font-black py-4 rounded-xl shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-3 text-lg md:text-xl border border-white/20 group cursor-pointer z-30 relative">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 md:w-6 md:h-6 text-pega-gold group-hover:animate-pulse"></i>
                 ANALIZAR EQUIPO POR EQUIPO
             </button>
             
-            <div id="analysis-result" class="hidden mt-6 bg-[#0f172a]/95 border border-pega-gold/30 rounded-xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
+            <div id="analysis-result" class="hidden mt-6 bg-[#0f172a]/95 border border-pega-gold/30 rounded-xl p-4 md:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pega-gold to-transparent opacity-50"></div>
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
                     <div class="bg-pega-gold/20 p-2 rounded-lg">
@@ -329,8 +341,8 @@
 
     <footer class="bg-black/50 backdrop-blur-sm text-slate-500 py-8 border-t border-white/5 mt-auto relative z-20">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
-            <span class="text-xs font-medium tracking-wider">© 2025 LIGA SOFTBOL PEGA</span>
-            <button onclick="openUploadModal()" class="text-[10px] uppercase font-bold tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-pega-gold hover:text-pega-navy transition border border-white/10">Acceso Capitanes</button>
+            <span class="text-[10px] md:text-xs font-medium tracking-wider">© 2025 LIGA SOFTBOL PEGA</span>
+            <button onclick="openUploadModal()" class="text-[9px] uppercase font-bold tracking-widest bg-white/5 px-3 py-2 rounded-full hover:bg-pega-gold hover:text-pega-navy transition border border-white/10">Acceso Capitanes</button>
         </div>
     </footer>
 
@@ -367,6 +379,10 @@
                 lucide.createIcons();
             }
         }
+        
+        function toggleMobileView() {
+            document.body.classList.toggle('mobile-view');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             refreshIcons();
@@ -391,7 +407,6 @@
             document.getElementById('data-container').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
             
-            // Mostrar botón Análisis solo en Standings
             if (type === 'standing') {
                 document.getElementById('analysis-wrapper').classList.remove('hidden');
             } else {
@@ -410,7 +425,7 @@
             container.innerHTML = filteredTabs.map(tab => {
                 const isLeader = tab.type === 'leader';
                 return `
-                <button onclick="switchTab('${tab.id}')" class="px-5 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all transform hover:-translate-y-1 hover:shadow-lg ${currentTabId === tab.id ? 'tab-active' : 'tab-inactive'} ${isLeader ? 'border-pega-gold/50' : ''}">
+                <button onclick="switchTab('${tab.id}')" class="px-3 py-2 md:px-5 md:py-2.5 rounded-lg font-bold text-xs md:text-sm tracking-wide transition-all transform hover:-translate-y-1 hover:shadow-lg ${currentTabId === tab.id ? 'tab-active' : 'tab-inactive'} ${isLeader ? 'border-pega-gold/50' : ''}">
                     ${isLeader ? `<span class="flex items-center gap-1"><i data-lucide="${tab.icon}" class="w-3 h-3"></i> ${tab.name}</span>` : tab.name}
                 </button>
             `}).join('');
@@ -488,17 +503,10 @@
                 } else {
                     if (activeTab.maxRows) rows = rows.slice(0, activeTab.maxRows);
                     
-                    // --- FILTRO MEJORADO DE FILAS VACÍAS ---
                     const cleanRows = rows.filter(r => {
                         const teamName = r[1] ? r[1].trim() : "";
                         const pos = r[0] ? r[0].trim() : "";
-                        
-                        return r.length > 1 && 
-                               pos !== "" && 
-                               !pos.toUpperCase().includes("POS") && 
-                               !teamName.toUpperCase().includes("EQUIPO") &&
-                               teamName !== "-" && 
-                               teamName !== ""; 
+                        return r.length > 1 && pos !== "" && !pos.toUpperCase().includes("POS") && !teamName.toUpperCase().includes("EQUIPO") && teamName !== "-" && teamName !== ""; 
                     });
 
                     globalData = cleanRows;
@@ -536,36 +544,19 @@
                     const teamB = match[12];
 
                     html += `
-                        <div class="mlb-card bg-[#0f172a]/90 p-5 rounded-xl min-w-[200px] w-[200px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
-                            
-                            <div class="w-full text-center space-y-3">
-                                <!-- Equipo A -->
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamA}">
-                                    ${teamA}
+                        <div class="mlb-card bg-[#0f172a]/90 p-4 md:p-5 rounded-xl min-w-[200px] w-[200px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
+                            <div class="w-full text-center space-y-2 md:space-y-3">
+                                <div class="font-black text-white text-sm md:text-lg uppercase truncate tracking-wide" title="${teamA}">${teamA}</div>
+                                <div class="bg-black/60 rounded-lg py-1 px-4 md:py-2 md:px-6 border border-pega-gold/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
+                                    <span class="font-sport text-2xl md:text-4xl text-pega-gold tracking-widest leading-none drop-shadow-md">${scoreA}-${scoreB}</span>
                                 </div>
-                                
-                                <!-- Marcador Central Dorado -->
-                                <div class="bg-black/60 rounded-lg py-2 px-6 border border-pega-gold/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
-                                    <span class="font-sport text-4xl text-pega-gold tracking-widest leading-none drop-shadow-md">
-                                        ${scoreA}-${scoreB}
-                                    </span>
-                                </div>
-                                
-                                <!-- Equipo B -->
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamB}">
-                                    ${teamB}
-                                </div>
+                                <div class="font-black text-white text-sm md:text-lg uppercase truncate tracking-wide" title="${teamB}">${teamB}</div>
                             </div>
                         </div>
                     `;
                 });
-
-                if (last5.length === 0) {
-                    scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">No hay resultados recientes disponibles.</div>`;
-                } else {
-                    scroller.innerHTML = html;
-                }
-
+                if (last5.length === 0) { scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">Sin resultados recientes.</div>`; } 
+                else { scroller.innerHTML = html; }
             } catch (e) {
                 console.error("Error loading results", e);
                 scroller.innerHTML = `<div class="text-red-400 text-xs p-2">Error resultados.</div>`;
@@ -636,16 +627,16 @@
                 const players = groups[groupName];
                 const top5 = players.slice(0, 5);
                 html += `
-                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-[#fbbf24]/50 transition duration-300">
+                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-pega-gold/50 transition duration-300">
                     <div class="bg-gradient-to-r ${config.color} p-4 text-white flex items-center justify-between border-b border-white/10">
-                        <div><h3 class="font-sport text-2xl uppercase tracking-wider drop-shadow-md">${groupName}</h3><span class="text-[10px] font-bold tracking-widest opacity-80 bg-black/20 px-2 py-0.5 rounded">TOP 5 ${config.label}</span></div>
-                        <i data-lucide="${config.icon}" class="w-8 h-8 text-white/20 transform group-hover:scale-125 group-hover:rotate-12 transition duration-500"></i>
+                        <div><h3 class="font-sport text-xl md:text-2xl uppercase tracking-wider drop-shadow-md">${groupName}</h3><span class="text-[9px] md:text-[10px] font-bold tracking-widest opacity-80 bg-black/20 px-2 py-0.5 rounded">TOP 5 ${config.label}</span></div>
+                        <i data-lucide="${config.icon}" class="w-6 h-6 md:w-8 md:h-8 text-white/20 transform group-hover:scale-125 group-hover:rotate-12 transition duration-500"></i>
                     </div>
                     <div class="p-0 flex-grow bg-[#0f172a]/40">
                         ${top5.map((p, i) => {
-                            let rankStyle = i===0?'text-yellow-400':(i===1?'text-slate-300':(i===2?'text-orange-400':'text-slate-500 font-[Teko] text-xl'));
+                            let rankStyle = i===0?'text-yellow-400':(i===1?'text-slate-300':(i===2?'text-orange-400':'text-slate-500 font-sport text-lg md:text-xl'));
                             let icon = i<3 ? 'medal' : '';
-                            return `<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition"><div class="flex items-center gap-3 w-full"><div class="w-8 flex justify-center flex-shrink-0 ${rankStyle}">${i<3?`<i data-lucide="${icon}" class="w-6 h-6"></i>`:`<span class="font-bold">${i+1}</span>`}</div><div class="min-w-0 flex-grow"><p class="font-black text-white text-lg uppercase truncate font-sport tracking-wide leading-none mb-0.5">${p.name.toLowerCase()}</p><p class="text-xs text-slate-400 font-bold uppercase truncate">${p.team}</p></div><div class="text-right pl-2"><span class="font-[Teko] font-black text-2xl text-white tracking-widest">${p.stat}</span></div></div></div>`;
+                            return `<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition"><div class="flex items-center gap-3 w-full"><div class="w-8 flex justify-center flex-shrink-0 ${rankStyle}">${i<3?`<i data-lucide="${icon}" class="w-5 h-5 md:w-6 md:h-6"></i>`:`<span class="font-bold">${i+1}</span>`}</div><div class="min-w-0 flex-grow"><p class="font-black text-white text-base md:text-lg uppercase truncate font-sport tracking-wide leading-none mb-0.5">${p.name.toLowerCase()}</p><p class="text-[10px] md:text-xs text-slate-400 font-bold uppercase truncate">${p.team}</p></div><div class="text-right pl-2"><span class="font-sport font-black text-xl md:text-2xl text-white tracking-widest">${p.stat}</span></div></div></div>`;
                         }).join('')}
                     </div>
                 </div>`;
@@ -654,37 +645,57 @@
             container.innerHTML = html;
         }
 
-        // --- RENDERIZADO TABLA ---
+        // --- RENDERIZADO TABLA (COMPACTA) ---
         function renderStandings(data) {
             const container = document.getElementById('data-container');
             const headers = ['POS', 'EQUIPO', 'JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'];
             
-            // TABLA DESKTOP (Oculta en móviles)
+            // TABLA ÚNICA RESPONSIVA (AJUSTADA PARA CELULAR COMPACTO)
             let html = `
-                <div class="hidden md:block mlb-card rounded-xl overflow-hidden shadow-2xl">
+                <div class="mlb-card rounded-xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-base">
-                            <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-[Teko] text-xl border-b border-[#fbbf24]/50"><tr>${headers.map(h => `<th class="px-4 py-4 text-center tracking-wider">${h}</th>`).join('')}</tr></thead>
+                        <table class="w-full whitespace-nowrap">
+                            <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-[Teko] border-b border-[#fbbf24]/50">
+                                <tr>
+                                    ${headers.map(h => `
+                                        <th class="px-0.5 py-1 md:px-4 md:py-4 text-center tracking-wider text-[10px] md:text-xl font-light text-slate-300 md:text-white md:font-normal">
+                                            ${h}
+                                        </th>
+                                    `).join('')}
+                                </tr>
+                            </thead>
                             <tbody class="divide-y divide-white/5">
                                 ${data.map(row => {
                                     const pos = row[0];
                                     let rowClass = 'hover:bg-white/5 transition text-center font-medium text-slate-300';
                                     let posBadge = 'bg-slate-700 text-slate-300';
+                                    
                                     if(pos==1) { posBadge='gold-gradient text-black shadow-lg shadow-yellow-500/50'; rowClass += ' bg-yellow-500/5'; }
                                     if(pos==2) { posBadge='silver-gradient text-black'; }
                                     if(pos==3) { posBadge='bronze-gradient text-white'; }
+                                    
                                     const get = i => row[i] || '-';
                                     
+                                    // AJUSTES MÓVILES EXTREMOS:
+                                    // Padding: px-0.5 py-0.5
+                                    // Textos: text-sm (Teko)
+                                    // Team Name: max-w-[80px]
                                     return `<tr class="${rowClass}">
-                                        <td class="px-4 py-4"><span class="inline-flex w-8 h-8 rounded-lg items-center justify-center text-sm font-black ${posBadge}">${pos}</span></td>
-                                        <td class="px-4 py-4 text-left font-bold text-white font-[Teko] text-2xl md:text-3xl tracking-wide uppercase">${get(1)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-white">${get(2)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-green-400">${get(3)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-slate-400">${get(4)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-red-400">${get(5)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-blue-400">${get(6)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-orange-400">${get(7)}</td>
-                                        <td class="px-4 py-4 text-center font-[Teko] font-black text-white text-3xl tracking-widest bg-white/5 rounded-lg">${get(8)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4"><span class="inline-flex w-4 h-4 md:w-8 md:h-8 rounded items-center justify-center text-[9px] md:text-sm font-black ${posBadge}">${pos}</span></td>
+                                        
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-left">
+                                            <div class="font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[70px] md:max-w-none leading-none pl-1">
+                                                ${get(1)}
+                                            </div>
+                                        </td>
+                                        
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(2)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-green-400">${get(3)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-slate-500">${get(4)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-red-400">${get(5)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-blue-400">${get(6)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-orange-400">${get(7)}</td>
+                                        <td class="px-0.5 py-0.5 md:px-4 md:py-4 text-center"><span class="font-[Teko] font-black text-white text-sm md:text-3xl tracking-widest bg-white/5 rounded px-1 md:px-2">${get(8)}</span></td>
                                     </tr>`;
                                 }).join('')}
                             </tbody>
@@ -692,40 +703,6 @@
                     </div>
                 </div>`;
             
-            // VISTA MÓVIL (Tarjetas - Visible solo en móvil)
-            html += `<div class="md:hidden grid gap-4">${data.map(row => `
-                <div class="mlb-card p-5 rounded-xl border-l-4 ${row[0]==1?'border-[#fbbf24] bg-gradient-to-r from-yellow-500/10 to-transparent':'border-slate-600'}">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3 w-2/3">
-                            <span class="font-[Teko] text-4xl text-white/20 font-bold">#${row[0]}</span>
-                            <!-- Ajuste para nombres largos en móvil -->
-                            <h3 class="font-black text-white uppercase text-xl leading-tight tracking-wide truncate">${row[1]}</h3>
-                        </div>
-                        <div class="flex flex-col items-end">
-                             <span class="text-[10px] text-slate-400 uppercase tracking-widest">DIF</span>
-                             <span class="font-[Teko] text-2xl font-bold text-[#fbbf24] bg-white/5 px-2 rounded border border-white/10">${row[8]}</span>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2 text-center bg-black/30 p-4 rounded-xl border border-white/5">
-                        <div>
-                            <span class="text-[9px] block text-slate-500 uppercase tracking-wider mb-1">JJ</span>
-                            <b class="text-white text-2xl font-[Teko]">${row[2]}</b>
-                        </div>
-                        <div>
-                            <span class="text-[9px] block text-green-500 uppercase tracking-wider mb-1">GAN</span>
-                            <b class="text-green-400 text-2xl font-[Teko]">${row[3]}</b>
-                        </div>
-                        <div>
-                            <span class="text-[9px] block text-red-500 uppercase tracking-wider mb-1">PER</span>
-                            <b class="text-red-400 text-2xl font-[Teko]">${row[5]}</b>
-                        </div>
-                        <div>
-                            <span class="text-[9px] block text-blue-500 uppercase tracking-wider mb-1">CF</span>
-                            <b class="text-blue-400 text-2xl font-[Teko]">${row[6]}</b>
-                        </div>
-                    </div>
-                </div>`).join('')}</div>`;
-                
             container.innerHTML = html;
         }
 
@@ -746,7 +723,6 @@
 
             setTimeout(() => {
                 try {
-                    // MODIFICACIÓN: Usar TODOS los datos globales sin filtrar por promedio
                     let activeTeams = globalData; 
                     
                     if (activeTeams.length === 0) {
@@ -776,12 +752,10 @@
                         
                         let statusColor = "border-slate-600";
                         let badgeClass = "bg-slate-600 text-slate-200";
-                        let badgeText = "Competitivo";
+                        let statusText = "En Desarrollo";
                         let analysisTitle = "Análisis General";
                         let analysisText = "";
                         let keyStat = "";
-
-                        // --- LÓGICA DE SCOUTING AVANZADO ---
                         
                         if (jj === 0) {
                             statusColor = "border-slate-500";
@@ -791,8 +765,8 @@
                             keyStat = "0 Juegos";
                         } 
                         else if (pct === 1.0 && jj >= 3) {
-                            statusColor = "border-[#fbbf24]"; // Dorado
-                            badgeClass = "bg-[#fbbf24] text-[#0f172a] font-black animate-pulse";
+                            statusColor = "border-pega-gold"; 
+                            badgeClass = "bg-pega-gold text-[#0f172a] font-black animate-pulse";
                             badgeText = "🔥 INVICTO";
                             analysisTitle = "La Máquina Perfecta";
                             analysisText = `Nadie ha encontrado la fórmula para vencerlos. Están dominando ambas facetas del juego. Son el rival a vencer indiscutible.`;
@@ -839,13 +813,12 @@
                             keyStat = `${cc} C. en Contra`;
                         }
 
-                        // --- FACTOR X (LÍDERES) ---
                         const leaders = teamLeadersInfo[name.toUpperCase().trim()];
                         let leaderHTML = "";
                         if (leaders && leaders.length > 0) {
                             leaderHTML = `
                                 <div class="mt-3 pt-2 border-t border-white/10 bg-white/5 -mx-4 -mb-4 px-4 py-2 rounded-b-lg">
-                                    <p class="text-[10px] text-[#fbbf24] font-bold uppercase flex items-center gap-1 mb-1">
+                                    <p class="text-[10px] text-pega-gold font-bold uppercase flex items-center gap-1 mb-1">
                                         <i data-lucide="star" class="w-3 h-3 fill-current"></i> Factor X
                                     </p>
                                     <div class="text-xs text-slate-300">
@@ -857,7 +830,7 @@
 
                         reportsHTML += `
                             <div class="bg-[#0f172a] border border-white/10 border-l-4 ${statusColor} p-4 rounded-r-xl shadow-lg flex flex-col h-full animate-fadeIn group hover:bg-[#1e293b] transition duration-300">
-                                <div class="flex justify-between items-start mb-3">
+                                <div class="flex justify-between items-start mb-2">
                                     <div class="flex items-center gap-3 overflow-hidden">
                                         <div class="font-[Teko] text-3xl text-slate-600 w-8 text-center leading-none">#${pos}</div>
                                         <div class="min-w-0">
@@ -865,10 +838,13 @@
                                             <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${badgeText}</span>
                                         </div>
                                     </div>
+                                    <div class="text-right">
+                                        <span class="block text-2xl font-[Teko] font-bold text-white">${jg}-${jp}</span>
+                                    </div>
                                 </div>
                                 
-                                <div class="mb-3 flex-grow">
-                                    <p class="text-xs text-[#fbbf24] font-bold uppercase mb-1 flex items-center gap-1">
+                                <div class="mb-2 flex-grow">
+                                    <p class="text-xs text-pega-gold font-bold uppercase mb-1 flex items-center gap-1">
                                         <i data-lucide="activity" class="w-3 h-3"></i> ${analysisTitle}
                                     </p>
                                     <p class="text-sm text-slate-300 leading-relaxed">${analysisText}</p>
@@ -886,7 +862,6 @@
 
                     reportsHTML += `</div>`;
                     
-                    // Header del reporte
                     const headerHTML = `
                         <div class="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
                             <div>
@@ -903,7 +878,6 @@
                     contentDiv.innerHTML = headerHTML + reportsHTML;
                     resultContainer.classList.remove('hidden');
                     
-                    // Scroll suave hacia el resultado
                     setTimeout(() => {
                         resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 100);
