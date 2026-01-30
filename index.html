@@ -221,9 +221,9 @@
             <p class="text-sm md:text-base text-pega-gold/90 font-bold tracking-widest uppercase mb-8 opacity-80">(¡ANIMO MI REY!)</p>
 
             <!-- MENÚ PRINCIPAL (HOME) -->
-            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8 fade-in">
+            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mt-8 fade-in relative z-30">
                 <!-- Botón Standings -->
-                <button onclick="enterSection('standing')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20">
+                <button onclick="enterSection('standing')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
@@ -234,7 +234,7 @@
                     </div>
                 </button>
                 <!-- Botón Líderes -->
-                <button onclick="enterSection('leader')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20">
+                <button onclick="enterSection('leader')" class="mlb-card group relative p-8 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-red/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
@@ -247,7 +247,7 @@
             </div>
 
             <!-- NAVEGACIÓN SECUNDARIA (PESTAÑAS) -->
-            <div id="tabs-navigation" class="hidden fade-in">
+            <div id="tabs-navigation" class="hidden fade-in relative z-30">
                 <div class="flex flex-wrap justify-center gap-3" id="tabs-container"></div>
             </div>
         </div>
@@ -278,13 +278,19 @@
 
         <!-- BOTÓN DE ANÁLISIS ESTADÍSTICO (SIN IA EXTERNA) -->
         <div id="analysis-wrapper" class="hidden mt-8 max-w-5xl mx-auto fade-in">
-            <button onclick="generateStaticAnalysis()" id="btn-analyze" class="w-full bg-gradient-to-r from-pega-blue to-pega-navy hover:from-blue-600 hover:to-blue-800 text-white font-black py-4 rounded-xl shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-3 text-xl border border-white/20 group">
+            <button onclick="generateStaticAnalysis()" id="btn-analyze" class="w-full bg-gradient-to-r from-pega-blue to-pega-navy hover:from-blue-600 hover:to-blue-800 text-white font-black py-4 rounded-xl shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-3 text-xl border border-white/20 group cursor-pointer z-30 relative">
                 <i data-lucide="bar-chart-3" class="w-6 h-6 text-pega-gold group-hover:animate-pulse"></i>
                 ANALIZAR EQUIPO POR EQUIPO
             </button>
             
             <div id="analysis-result" class="hidden mt-6 bg-[#0f172a]/95 border border-pega-gold/30 rounded-xl p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pega-gold to-transparent opacity-50"></div>
+                <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                    <div class="bg-pega-gold/20 p-2 rounded-lg">
+                        <i data-lucide="clipboard-list" class="w-6 h-6 text-pega-gold"></i>
+                    </div>
+                    <h3 class="font-sport text-2xl text-white tracking-wide">REPORTE DE SCOUTING</h3>
+                </div>
                 <div id="analysis-content" class="text-slate-300 space-y-4"></div>
             </div>
         </div>
@@ -292,7 +298,7 @@
     </main>
 
     <!-- Modal Upload -->
-    <dialog id="uploadModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-md bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90">
+    <dialog id="uploadModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-md bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90 z-50">
         <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-5 flex justify-between items-center border-b border-white/10">
             <h3 class="font-sport text-2xl flex items-center gap-2 tracking-wide text-white"><i data-lucide="shield" class="w-6 h-6 text-pega-gold"></i> ZONA CAPITANES</h3>
             <button onclick="document.getElementById('uploadModal').close()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
@@ -307,7 +313,7 @@
         </div>
     </dialog>
 
-    <footer class="bg-black/50 backdrop-blur-sm text-slate-500 py-8 border-t border-white/5 mt-auto">
+    <footer class="bg-black/50 backdrop-blur-sm text-slate-500 py-8 border-t border-white/5 mt-auto relative z-20">
         <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
             <span class="text-xs font-medium tracking-wider">© 2025 LIGA SOFTBOL PEGA</span>
             <button onclick="openUploadModal()" class="text-[10px] uppercase font-bold tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-pega-gold hover:text-pega-navy transition border border-white/10">Acceso Capitanes</button>
@@ -317,8 +323,6 @@
     <!-- 5. Script Principal -->
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
-        
-        // URL PARA RESULTADOS (ACTUALIZADA)
         const RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=273219991&single=true&output=csv";
         
         const TABS = [
@@ -341,10 +345,19 @@
         let currentTabId = null;
         let globalData = [];
         let loadedTeams = [];
+        let teamLeadersInfo = {}; 
+
+        // Función segura para actualizar iconos
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
+            refreshIcons();
             goHome();
+            preloadLeaders(); 
         });
 
         // --- NAVEGACIÓN ---
@@ -387,7 +400,7 @@
                     ${isLeader ? `<span class="flex items-center gap-1"><i data-lucide="${tab.icon}" class="w-3 h-3"></i> ${tab.name}</span>` : tab.name}
                 </button>
             `}).join('');
-            lucide.createIcons();
+            refreshIcons();
         }
 
         function switchTab(id) {
@@ -404,7 +417,7 @@
             let icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'info');
             toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i> <span>${message}</span>`;
             container.appendChild(toast);
-            lucide.createIcons();
+            refreshIcons();
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(100%)';
@@ -412,7 +425,6 @@
             }, 4000);
         }
 
-        // --- CARGA DE DATOS ---
         async function fetchWithProxy(url) {
             try {
                 const proxy1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
@@ -440,7 +452,6 @@
             loader.style.display = 'block';
             document.getElementById('analysis-result').classList.add('hidden'); 
 
-            // Manejo de visibilidad de resultados recientes
             const recentResultsContainer = document.getElementById('recent-results');
             if (activeTab.id === 'super-a') {
                 recentResultsContainer.classList.remove('hidden');
@@ -461,7 +472,20 @@
                     renderGroupedLeaderBoard(groupedData, activeTab);
                 } else {
                     if (activeTab.maxRows) rows = rows.slice(0, activeTab.maxRows);
-                    const cleanRows = rows.filter(r => r.length > 1 && r[0] !== "" && !r[0].toUpperCase().includes("POS") && !r[1].toUpperCase().includes("EQUIPO"));
+                    
+                    // --- FILTRO MEJORADO DE FILAS VACÍAS ---
+                    const cleanRows = rows.filter(r => {
+                        const teamName = r[1] ? r[1].trim() : "";
+                        const pos = r[0] ? r[0].trim() : "";
+                        
+                        return r.length > 1 && 
+                               pos !== "" && 
+                               !pos.toUpperCase().includes("POS") && 
+                               !teamName.toUpperCase().includes("EQUIPO") &&
+                               teamName !== "-" && 
+                               teamName !== ""; 
+                    });
+
                     globalData = cleanRows;
                     renderStandings(cleanRows);
                     loadedTeams = cleanRows.map(r => r[1]); 
@@ -472,14 +496,13 @@
                 console.error(error);
                 showToast("Error cargando datos. Revisa tu internet.", "error");
                 container.innerHTML = `<div class="bg-red-900/50 border border-red-500 text-white p-6 rounded-xl text-center"><i data-lucide="alert-triangle" class="w-8 h-8 mx-auto mb-2 text-red-400"></i><p>No se pudo conectar con la Hoja de Datos.</p></div>`;
-                lucide.createIcons();
+                refreshIcons();
             } finally {
                 loader.style.display = 'none';
-                lucide.createIcons();
+                refreshIcons();
             }
         }
 
-        // --- NUEVA FUNCIÓN: CARGAR RESULTADOS RECIENTES ---
         async function loadRecentResults() {
             const scroller = document.getElementById('results-scroller');
             scroller.innerHTML = `<div class="text-white text-xs p-4">Cargando resultados...</div>`;
@@ -487,17 +510,7 @@
             try {
                 let text = await fetchWithProxy(RESULTS_SHEET_URL);
                 let rows = parseCSV(text);
-                
-                // Mapeo Correcto solicitado:
-                // Col J (9): Equipo A
-                // Col K (10): Carreras A
-                // Col L (11): Carreras B
-                // Col M (12): Equipo B
-                // Col O (14): Referencia fecha (solo para orden)
-
                 const validMatches = rows.filter(r => r[9] && r[9].trim() !== "");
-                
-                // Tomamos los últimos 5 y los invertimos para ver el más nuevo primero
                 const last5 = validMatches.slice(-5).reverse(); 
 
                 let html = '';
@@ -507,38 +520,20 @@
                     const scoreB = match[11];
                     const teamB = match[12];
 
-                    // DISEÑO LIMPIO: EQUIPO A - MARCADOR DORADO - EQUIPO B
                     html += `
                         <div class="mlb-card bg-[#0f172a]/90 p-5 rounded-xl min-w-[220px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
-                            
                             <div class="w-full text-center space-y-3">
-                                <!-- Equipo A -->
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamA}">
-                                    ${teamA}
+                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamA}">${teamA}</div>
+                                <div class="bg-black/60 rounded-lg py-2 px-6 border border-[#fbbf24]/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
+                                    <span class="font-[Teko] text-4xl text-[#fbbf24] tracking-widest leading-none drop-shadow-md">${scoreA}-${scoreB}</span>
                                 </div>
-                                
-                                <!-- Marcador Central Dorado -->
-                                <div class="bg-black/60 rounded-lg py-2 px-6 border border-pega-gold/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
-                                    <span class="font-sport text-4xl text-pega-gold tracking-widest leading-none drop-shadow-md">
-                                        ${scoreA}-${scoreB}
-                                    </span>
-                                </div>
-                                
-                                <!-- Equipo B -->
-                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamB}">
-                                    ${teamB}
-                                </div>
+                                <div class="font-black text-white text-lg uppercase truncate tracking-wide" title="${teamB}">${teamB}</div>
                             </div>
                         </div>
                     `;
                 });
-
-                if (last5.length === 0) {
-                    scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">No hay resultados recientes disponibles.</div>`;
-                } else {
-                    scroller.innerHTML = html;
-                }
-
+                if (last5.length === 0) { scroller.innerHTML = `<div class="text-slate-500 text-xs italic p-2">Sin resultados recientes.</div>`; } 
+                else { scroller.innerHTML = html; }
             } catch (e) {
                 console.error("Error loading results", e);
                 scroller.innerHTML = `<div class="text-red-400 text-xs p-2">Error resultados.</div>`;
@@ -553,6 +548,28 @@
         }
 
         function parseCSV(text) { return text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, ''))); }
+
+        async function preloadLeaders() {
+            console.log("Cargando líderes en segundo plano...");
+            const csvUrl = `${BASE_SHEET_URL}?gid=0&single=true&output=csv`;
+            try {
+                let text = await fetchWithProxy(csvUrl);
+                const rows = parseCSV(text).slice(0, 45); 
+                const leaderConfigs = TABS.filter(t => t.type === 'leader');
+                leaderConfigs.forEach(config => {
+                    const data = processLeaderData(rows, config);
+                    for (let group in data) {
+                        const leaders = data[group];
+                        if (leaders.length > 0) {
+                            const topLeader = leaders[0]; 
+                            const teamName = topLeader.team.toUpperCase().trim();
+                            if (!teamLeadersInfo[teamName]) teamLeadersInfo[teamName] = [];
+                            teamLeadersInfo[teamName].push(`${config.label}: ${topLeader.name} (${topLeader.stat})`);
+                        }
+                    }
+                });
+            } catch (e) { console.warn("Preload líderes falló", e); }
+        }
 
         function processLeaderData(rows, config) {
             let groups = {};
@@ -587,16 +604,16 @@
                 const players = groups[groupName];
                 const top5 = players.slice(0, 5);
                 html += `
-                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-pega-gold/50 transition duration-300">
+                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-[#fbbf24]/50 transition duration-300">
                     <div class="bg-gradient-to-r ${config.color} p-4 text-white flex items-center justify-between border-b border-white/10">
                         <div><h3 class="font-sport text-2xl uppercase tracking-wider drop-shadow-md">${groupName}</h3><span class="text-[10px] font-bold tracking-widest opacity-80 bg-black/20 px-2 py-0.5 rounded">TOP 5 ${config.label}</span></div>
                         <i data-lucide="${config.icon}" class="w-8 h-8 text-white/20 transform group-hover:scale-125 group-hover:rotate-12 transition duration-500"></i>
                     </div>
                     <div class="p-0 flex-grow bg-[#0f172a]/40">
                         ${top5.map((p, i) => {
-                            let rankStyle = i===0?'text-yellow-400':(i===1?'text-slate-300':(i===2?'text-orange-400':'text-slate-500 font-sport text-xl'));
+                            let rankStyle = i===0?'text-yellow-400':(i===1?'text-slate-300':(i===2?'text-orange-400':'text-slate-500 font-[Teko] text-xl'));
                             let icon = i<3 ? 'medal' : '';
-                            return `<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition"><div class="flex items-center gap-3 w-full"><div class="w-8 flex justify-center flex-shrink-0 ${rankStyle}">${i<3?`<i data-lucide="${icon}" class="w-6 h-6"></i>`:`<span class="font-bold">${i+1}</span>`}</div><div class="min-w-0 flex-grow"><p class="font-black text-white text-lg uppercase truncate font-sport tracking-wide leading-none mb-0.5">${p.name.toLowerCase()}</p><p class="text-xs text-slate-400 font-bold uppercase truncate">${p.team}</p></div><div class="text-right pl-2"><span class="font-sport font-black text-2xl text-white tracking-widest">${p.stat}</span></div></div></div>`;
+                            return `<div class="flex items-center justify-between p-3 border-b border-white/5 hover:bg-white/5 transition"><div class="flex items-center gap-3 w-full"><div class="w-8 flex justify-center flex-shrink-0 ${rankStyle}">${i<3?`<i data-lucide="${icon}" class="w-6 h-6"></i>`:`<span class="font-bold">${i+1}</span>`}</div><div class="min-w-0 flex-grow"><p class="font-black text-white text-lg uppercase truncate font-sport tracking-wide leading-none mb-0.5">${p.name.toLowerCase()}</p><p class="text-xs text-slate-400 font-bold uppercase truncate">${p.team}</p></div><div class="text-right pl-2"><span class="font-[Teko] font-black text-2xl text-white tracking-widest">${p.stat}</span></div></div></div>`;
                         }).join('')}
                     </div>
                 </div>`;
@@ -611,8 +628,8 @@
             let html = `
                 <div class="mlb-card rounded-xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-sm">
-                            <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-sport text-lg border-b border-pega-gold/50"><tr>${headers.map(h => `<th class="px-4 py-4 text-center tracking-wider">${h}</th>`).join('')}</tr></thead>
+                        <table class="w-full text-base">
+                            <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-[Teko] text-xl border-b border-[#fbbf24]/50"><tr>${headers.map(h => `<th class="px-4 py-4 text-center tracking-wider">${h}</th>`).join('')}</tr></thead>
                             <tbody class="divide-y divide-white/5">
                                 ${data.map(row => {
                                     const pos = row[0];
@@ -622,18 +639,78 @@
                                     if(pos==2) { posBadge='silver-gradient text-black'; }
                                     if(pos==3) { posBadge='bronze-gradient text-white'; }
                                     const get = i => row[i] || '-';
-                                    return `<tr class="${rowClass}"><td class="px-4 py-4"><span class="inline-flex w-8 h-8 rounded-lg items-center justify-center text-xs font-black ${posBadge}">${pos}</span></td><td class="px-4 py-4 text-left font-bold text-white font-sport text-xl md:text-2xl tracking-wide uppercase">${get(1)}</td><td class="px-4 py-4 font-mono">${get(2)}</td><td class="px-4 py-4 text-green-400 font-bold bg-green-500/10 rounded">${get(3)}</td><td class="px-4 py-4 text-slate-500">${get(4)}</td><td class="px-4 py-4 text-red-400 bg-red-500/10 rounded">${get(5)}</td><td class="px-4 py-4 text-blue-400">${get(6)}</td><td class="px-4 py-4 text-orange-400">${get(7)}</td><td class="px-4 py-4 font-black text-white text-lg">${get(8)}</td></tr>`;
+                                    
+                                    // AHORA TODOS LOS NÚMEROS TIENEN CLASE text-3xl COMO 'DIF'
+                                    return `<tr class="${rowClass}">
+                                        <td class="px-4 py-4"><span class="inline-flex w-8 h-8 rounded-lg items-center justify-center text-sm font-black ${posBadge}">${pos}</span></td>
+                                        
+                                        <td class="px-4 py-4 text-left font-bold text-white font-[Teko] text-2xl md:text-3xl tracking-wide uppercase">${get(1)}</td>
+                                        
+                                        <!-- JJ -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-white">${get(2)}</td>
+                                        
+                                        <!-- JG (Verde) -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-green-400">${get(3)}</td>
+
+                                        <!-- JE -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-slate-400">${get(4)}</td>
+
+                                        <!-- JP (Rojo) -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl font-bold text-red-400">${get(5)}</td>
+
+                                        <!-- CF (Azul) -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-blue-400">${get(6)}</td>
+                                        
+                                        <!-- CC (Naranja) -->
+                                        <td class="px-4 py-4 text-center font-[Teko] text-3xl text-orange-400">${get(7)}</td>
+                                        
+                                        <!-- DIF (Blanco Resaltado) -->
+                                        <td class="px-4 py-4 text-center font-[Teko] font-black text-white text-3xl tracking-widest bg-white/5 rounded-lg">${get(8)}</td>
+                                    </tr>`;
                                 }).join('')}
                             </tbody>
                         </table>
                     </div>
                 </div>`;
             
-            html += `<div class="md:hidden grid gap-4">${data.map(row => `<div class="mlb-card p-5 rounded-xl border-l-4 ${row[0]==1?'border-pega-gold bg-gradient-to-r from-yellow-500/10 to-transparent':'border-slate-600'}"><div class="flex justify-between items-center mb-3"><div class="flex items-center gap-3"><span class="font-sport text-3xl text-white/20 font-bold">#${row[0]}</span><h3 class="font-black text-white uppercase text-xl leading-tight tracking-wide">${row[1]}</h3></div><span class="text-[10px] font-bold bg-white/10 text-white px-2 py-1 rounded border border-white/10">DIF ${row[8]}</span></div><div class="grid grid-cols-4 gap-2 text-center text-xs bg-black/20 p-3 rounded-lg border border-white/5"><div><span class="text-[9px] block text-slate-500 uppercase tracking-wider mb-1">JJ</span><b class="text-white text-base font-sport">${row[2]}</b></div><div><span class="text-[9px] block text-green-500 uppercase tracking-wider mb-1">GAN</span><b class="text-green-400 text-base font-sport">${row[3]}</b></div><div><span class="text-[9px] block text-red-500 uppercase tracking-wider mb-1">PER</span><b class="text-red-400 text-base font-sport">${row[5]}</b></div><div><span class="text-[9px] block text-blue-500 uppercase tracking-wider mb-1">CF</span><b class="text-blue-400 text-base font-sport">${row[6]}</b></div></div></div>`).join('')}</div>`;
+            // Mobile Cards View (Números Grandes)
+            html += `<div class="md:hidden grid gap-4">${data.map(row => `
+                <div class="mlb-card p-5 rounded-xl border-l-4 ${row[0]==1?'border-[#fbbf24] bg-gradient-to-r from-yellow-500/10 to-transparent':'border-slate-600'}">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="font-[Teko] text-4xl text-white/20 font-bold">#${row[0]}</span>
+                            <h3 class="font-black text-white uppercase text-2xl leading-tight tracking-wide">${row[1]}</h3>
+                        </div>
+                        <div class="flex flex-col items-end">
+                             <span class="text-[10px] text-slate-400 uppercase tracking-widest">DIF</span>
+                             <span class="font-[Teko] text-3xl font-bold text-[#fbbf24] bg-white/5 px-2 rounded border border-white/10">${row[8]}</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center bg-black/30 p-4 rounded-xl border border-white/5">
+                        <div>
+                            <span class="text-[9px] block text-slate-500 uppercase tracking-wider mb-1">JJ</span>
+                            <b class="text-white text-3xl font-[Teko]">${row[2]}</b>
+                        </div>
+                        <div>
+                            <span class="text-[9px] block text-green-500 uppercase tracking-wider mb-1">GAN</span>
+                            <b class="text-green-400 text-3xl font-[Teko]">${row[3]}</b>
+                        </div>
+                        <div>
+                            <span class="text-[9px] block text-red-500 uppercase tracking-wider mb-1">PER</span>
+                            <b class="text-red-400 text-3xl font-[Teko]">${row[5]}</b>
+                        </div>
+                        <div>
+                            <span class="text-[9px] block text-blue-500 uppercase tracking-wider mb-1">CF</span>
+                            <b class="text-blue-400 text-3xl font-[Teko]">${row[6]}</b>
+                        </div>
+                    </div>
+                </div>`).join('')}</div>`;
             container.innerHTML = html;
         }
 
         // --- ANÁLISIS ESTADÍSTICO (SIN IA EXTERNA) ---
+
+        // --- ANÁLISIS ESTADÍSTICO (DIAGNÓSTICO TÁCTICO) ---
         function generateStaticAnalysis() {
             const btn = document.getElementById('btn-analyze');
             const resultContainer = document.getElementById('analysis-result');
@@ -645,22 +722,13 @@
             }
 
             const originalText = btn.innerHTML;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> CALCULANDO...`;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i> CALCULANDO ESTRATEGIA...`;
             btn.disabled = true;
 
             setTimeout(() => {
                 try {
-                    // 1. Calcular el promedio de Juegos Jugados (JJ)
-                    const totalGames = globalData.reduce((sum, row) => sum + (parseInt(row[2]) || 0), 0);
-                    const averageGames = globalData.length > 0 ? totalGames / globalData.length : 0;
-
-                    // 2. Filtrar equipos que tienen MÁS juegos que el promedio
-                    let activeTeams = globalData.filter(row => parseInt(row[2]) > averageGames);
-
-                    // Fallback
-                    if (activeTeams.length === 0) {
-                         activeTeams = globalData.filter(row => parseInt(row[2]) > 0);
-                    }
+                    // MODIFICACIÓN: Usar TODOS los datos globales sin filtrar por promedio
+                    let activeTeams = globalData; 
                     
                     if (activeTeams.length === 0) {
                          const analysisHTML = `<div class="p-4 text-center text-slate-300">La temporada aún no comienza o no hay datos de juegos registrados.</div>`;
@@ -671,87 +739,128 @@
                          return;
                     }
 
-                    const leader = activeTeams[0];
-                    const leaderName = leader[1]; 
-                    const leaderWins = leader[3]; 
-                    const leaderLoss = leader[5]; 
-                    const leaderDif = leader[8];  
-                    
-                    const bestOffense = activeTeams.reduce((prev, current) => 
-                        (parseInt(current[6]) > parseInt(prev[6])) ? current : prev
-                    );
+                    let reportsHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
 
-                    const bestDefense = activeTeams.reduce((prev, current) => 
-                        (parseInt(current[7]) < parseInt(prev[7])) ? current : prev
-                    );
+                    activeTeams.forEach(team => {
+                        const pos = team[0];
+                        const name = team[1];
+                        const jg = parseInt(team[3]) || 0;
+                        const jp = parseInt(team[5]) || 0;
+                        const cf = parseInt(team[6]) || 0;
+                        const cc = parseInt(team[7]) || 0;
+                        const dif = parseInt(team[8]) || 0;
+                        const jj = parseInt(team[2]) || 0;
+                        
+                        const pct = jj > 0 ? jg / jj : 0;
+                        const avgRunsFor = jj > 0 ? (cf / jj).toFixed(1) : 0;
+                        const avgRunsAgainst = jj > 0 ? (cc / jj).toFixed(1) : 0;
+                        
+                        let statusColor = "border-slate-600";
+                        let badgeClass = "bg-slate-600 text-slate-200";
+                        let statusText = "En Desarrollo";
+                        
+                        // Lógica de Diagnóstico (Qué mejorar)
+                        let diagnosis = "";
+                        let tacticalAdvice = "";
 
-                    const analysisHTML = `
-                        <div class="space-y-4">
-                            <!-- Tarjeta del Líder -->
-                            <div class="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg flex items-start gap-4">
-                                <div class="bg-yellow-500 text-black p-2 rounded-full font-bold">#1</div>
-                                <div>
-                                    <h4 class="text-yellow-500 font-bold uppercase text-lg mb-1">Dominio Total</h4>
-                                    <p class="text-sm text-slate-300">
-                                        <strong class="text-white text-base">${leaderName}</strong> lidera la tabla con un récord impresionante de 
-                                        <span class="text-green-400 font-bold">${leaderWins} victorias</span> y 
-                                        <span class="text-red-400 font-bold">${leaderLoss} derrotas</span>.
-                                        Su diferencia de carreras es de <strong>+${leaderDif}</strong>.
-                                    </p>
+                        if (jj === 0) {
+                            statusColor = "border-slate-500";
+                            statusText = "Por Debutar";
+                            diagnosis = "Sin datos de juego.";
+                            tacticalAdvice = "El equipo está listo para iniciar la temporada. La clave será establecer una rotación de pitcheo sólida desde el día 1.";
+                        } else if (pct >= 0.8) {
+                            statusColor = "border-yellow-500";
+                            badgeClass = "bg-yellow-500 text-black";
+                            statusText = "Potencia de Liga";
+                            diagnosis = `Promedian ${avgRunsFor} carreras por juego.`;
+                            tacticalAdvice = "Están jugando béisbol casi perfecto. El único riesgo es el exceso de confianza. Mantener la intensidad en el corrido de bases asegurará el campeonato.";
+                        } else if (cf > cc && jp > jg) {
+                            // Anotan más de lo que reciben pero pierden (Mala suerte o juegos cerrados perdidos)
+                            statusColor = "border-orange-500";
+                            badgeClass = "bg-orange-600 text-white";
+                            statusText = "Bates Calientes / Defensa Fría";
+                            diagnosis = `Anotan mucho (${avgRunsFor} pp) pero permiten ${avgRunsAgainst}.`;
+                            tacticalAdvice = "Su ofensiva es de campeonato, pero la defensa está regalando juegos. <strong class='text-white'>Necesitan reforzar el cuadro interior y reducir errores</strong> para capitalizar su poder al bate.";
+                        } else if (cc < cf && jg > jp) {
+                            // Ganan sólido
+                            statusColor = "border-green-500";
+                            badgeClass = "bg-green-600 text-white";
+                            statusText = "Contendiente Sólido";
+                            diagnosis = `Balance positivo (+${dif} carreras).`;
+                            tacticalAdvice = "Equipo muy equilibrado. Para asegurar el liderato, deben enfocarse en ganar los duelos directos contra los rivales del Top 3.";
+                        } else if (Math.abs(dif) <= 5 && jp >= jg) {
+                            // Juegos cerrados
+                            statusColor = "border-blue-500";
+                            badgeClass = "bg-blue-600 text-white";
+                            statusText = "Competitivo";
+                            diagnosis = "Juegos definidos por la mínima.";
+                            tacticalAdvice = "Están perdiendo juegos apretados. <strong class='text-white'>Les falta el 'batazo oportuno'</strong> con gente en base. Trabajar en situaciones de presión cambiará esos resultados.";
+                        } else if (cf < (cc * 0.6)) {
+                            // Problema ofensivo grave
+                            statusColor = "border-red-500";
+                            badgeClass = "bg-red-600 text-white";
+                            statusText = "Alerta Ofensiva";
+                            diagnosis = `Solo ${avgRunsFor} carreras por juego.`;
+                            tacticalAdvice = "El pitcheo no puede hacerlo todo solo. <strong class='text-white'>Urge despertar los bates</strong>; necesitan ser más agresivos al primer lanzamiento y embasarse para generar presión.";
+                        } else {
+                            statusColor = "border-slate-500";
+                            statusText = "En Reconstrucción";
+                            diagnosis = `Diferencial de ${dif}.`;
+                            tacticalAdvice = "Temporada de aprendizaje. Enfocarse en los fundamentos defensivos para evitar innings grandes del rival y construir confianza inning a inning.";
+                        }
+
+                        const leaders = teamLeadersInfo[name.toUpperCase().trim()];
+                        let leaderHTML = "";
+                        if (leaders && leaders.length > 0) {
+                            leaderHTML = `<div class="mt-3 pt-2 border-t border-white/10"><p class="text-[10px] text-[#fbbf24] font-bold uppercase flex items-center gap-1 mb-1"><i data-lucide="star" class="w-3 h-3"></i> Jugador Clave</p><ul class="text-xs text-white list-disc list-inside">${leaders.map(l => `<li>${l}</li>`).join('')}</ul></div>`;
+                        }
+
+                        reportsHTML += `
+                            <div class="bg-slate-800/50 border-l-4 ${statusColor} p-4 rounded-r-xl hover:bg-slate-800 transition shadow-lg flex flex-col h-full animate-fadeIn">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="flex items-center gap-3">
+                                        <span class="font-[Teko] text-2xl text-slate-500 w-6 text-center">#${pos}</span>
+                                        <div>
+                                            <h4 class="text-white font-black text-lg leading-tight uppercase tracking-wide truncate w-32 md:w-48" title="${name}">${name}</h4>
+                                            <span class="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${statusText}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="block text-2xl font-[Teko] font-bold text-white">${jg}-${jp}</span>
+                                    </div>
                                 </div>
+                                
+                                <div class="mb-2">
+                                    <p class="text-xs text-slate-400 font-bold uppercase mb-1">Diagnóstico:</p>
+                                    <p class="text-sm text-slate-200">${diagnosis}</p>
+                                </div>
+                                <div class="mb-2 flex-grow">
+                                    <p class="text-xs text-[#fbbf24] font-bold uppercase mb-1">Área de Mejora:</p>
+                                    <p class="text-sm text-slate-300 leading-snug">${tacticalAdvice}</p>
+                                </div>
+
+                                ${leaderHTML}
                             </div>
+                        `;
+                    });
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Mejor Ofensiva -->
-                                <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg">
-                                    <h4 class="text-blue-400 font-bold uppercase mb-2 flex items-center gap-2">
-                                        <i data-lucide="flame" class="w-4 h-4"></i> Poder Ofensivo
-                                    </h4>
-                                    <p class="text-sm text-slate-300">
-                                        <strong class="text-white text-lg block mb-1">${bestOffense[1]}</strong>
-                                        Es la máquina de bateo del grupo con 
-                                        <strong class="text-blue-400 text-xl">${bestOffense[6]}</strong> carreras anotadas.
-                                    </p>
-                                </div>
-
-                                <!-- Mejor Defensa -->
-                                <div class="bg-green-900/20 border border-green-500/30 p-4 rounded-lg">
-                                    <h4 class="text-green-400 font-bold uppercase mb-2 flex items-center gap-2">
-                                        <i data-lucide="shield" class="w-4 h-4"></i> Muralla Defensiva
-                                    </h4>
-                                    <p class="text-sm text-slate-300">
-                                        <strong class="text-white text-lg block mb-1">${bestDefense[1]}</strong>
-                                        Tiene la defensa más sólida, permitiendo solo 
-                                        <strong class="text-green-400 text-xl">${bestDefense[7]}</strong> carreras en contra.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    contentDiv.innerHTML = analysisHTML;
+                    reportsHTML += `</div>`;
+                    contentDiv.innerHTML = reportsHTML;
                     resultContainer.classList.remove('hidden');
-                    // Scroll suave
                     resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    
-                    // Re-inicializar iconos dentro del nuevo HTML
                     lucide.createIcons();
-
                 } catch (e) {
                     console.error("Error análisis:", e);
-                    showToast("Error al generar análisis.", "error");
                 } finally {
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
-            }, 600); 
+            }, 600);
         }
 
         function openUploadModal() {
             const modal = document.getElementById('uploadModal');
-            if(loadedTeams.length > 0) {
-                document.getElementById('teamSelect').innerHTML = '<option value="">Selecciona...</option>' + loadedTeams.map(t => `<option value="${t}">${t}</option>`).join('');
-            }
+            if(loadedTeams.length > 0) { document.getElementById('teamSelect').innerHTML = '<option value="">Selecciona...</option>' + loadedTeams.map(t => `<option value="${t}">${t}</option>`).join(''); }
             modal.showModal();
         }
     </script>
