@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liga de Softbol PEGA - Grupo Super A-</title>
+    <title>Liga de Softbol PEGA - MLB Style</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@400;500;700&family=Teko:wght@600&display=swap" rel="stylesheet">
+    <!-- Fuentes: Black Ops One, Teko, Roboto -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Roboto:wght@400;500;700;900&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <!-- ========================================== -->
-    <!--     CONFIGURACIÓN DE FIREBASE (OFICIAL)    -->
+    <!--     CONFIGURACIÓN DE FIREBASE              -->
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -23,7 +26,7 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // ✅✅✅ TUS LLAVES REALES (Ya configuradas) ✅✅✅
+        // TUS LLAVES
         const firebaseConfig = {
             apiKey: "AIzaSyBiyx9qNhBgXknIsM3kmanksNsOKi4p090",
             authDomain: "liga-softbol-pega.firebaseapp.com",
@@ -34,76 +37,57 @@
             measurementId: "G-WKK22W19CT"
         };
 
-        // Inicialización segura
         try {
             const app = initializeApp(firebaseConfig);
             window.db = getFirestore(app);
             window.storage = getStorage(app);
             window.auth = getAuth(app);
-            
-            // Login anónimo automático para permitir subidas
-            signInAnonymously(window.auth)
-                .then(() => console.log("✅ Conectado a Firebase como usuario anónimo"))
-                .catch((err) => console.warn("⚠️ Aviso Auth:", err.message));
-
+            signInAnonymously(window.auth).catch(console.warn);
         } catch (e) {
-            console.error("❌ Error iniciando Firebase:", e);
+            console.error("Error Firebase:", e);
         }
 
-        // Función de subida (Zona Capitanes)
         window.handleUpload = async function(event) {
             event.preventDefault();
+            const SHARED_PASSWORD = "SOFTBOL2025";
             
-            if (!window.storage || !window.db) {
-                alert("⚠️ Firebase no se inició correctamente. Recarga la página.");
-                return;
-            }
+            if (!window.storage) return alert("Error conexión Firebase.");
 
             const teamSelect = document.getElementById('teamSelect');
             const fileInput = document.getElementById('logoFile');
+            const passwordInput = document.getElementById('teamPassword');
             const submitBtn = document.querySelector('#uploadForm button[type="submit"]');
 
-            const teamName = teamSelect.value;
+            if (!teamSelect.value || !fileInput.files[0]) return alert("Faltan datos.");
+            if (passwordInput.value.trim().toUpperCase() !== SHARED_PASSWORD) return alert("Contraseña incorrecta.");
+
             const file = fileInput.files[0];
+            if (file.size > 15 * 1024 * 1024) return alert("Imagen muy grande (>15MB).");
 
-            if (!teamName || !file) {
-                alert("⚠️ Por favor selecciona tu equipo y una imagen.");
-                return;
-            }
-
-            const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Subiendo...`;
-            lucide.createIcons();
 
             try {
-                const cleanName = teamName.replace(/[^a-zA-Z0-9]/g, '_');
-                const fileName = `logos/${cleanName}_${Date.now()}`;
+                const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
                 const storageRef = ref(window.storage, fileName);
-
                 const snapshot = await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
                 await addDoc(collection(window.db, "pending_logos"), {
-                    team: teamName,
+                    team: teamSelect.value,
                     logoUrl: downloadURL,
                     status: "pending",
                     createdAt: serverTimestamp()
                 });
 
-                alert("✅ ¡Éxito! Tu logo ha sido enviado a revisión.");
+                alert("✅ Logo enviado correctamente.");
                 document.getElementById('uploadModal').close();
                 document.getElementById('uploadForm').reset();
-
             } catch (error) {
-                console.error("Error subiendo:", error);
-                let msg = error.message;
-                if(error.code === 'storage/unauthorized') msg = "Permiso denegado. Verifica las Reglas de Storage en Firebase Console.";
-                alert("❌ Error: " + msg);
+                alert("Error al subir: " + error.message);
             } finally {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnText;
-                lucide.createIcons();
+                submitBtn.innerHTML = `Enviar Logo`;
             }
         }
     </script>
@@ -126,350 +110,499 @@
     </script>
 
     <style>
-        body { font-family: 'Roboto', sans-serif; background-color: #f1f5f9; }
-        .hero-pattern { background-color: #0f172a; background-image: radial-gradient(#1e3a8a 1px, transparent 1px); background-size: 20px 20px; }
-        .table-header { background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%); border-bottom: 4px solid #fbbf24; }
-        .pos-1 { background: linear-gradient(135deg, #fbbf24, #d97706); color: #fff; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .pos-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; border: 2px solid #fff; }
-        .pos-3 { background: linear-gradient(135deg, #b45309, #78350f); color: #fff; border: 2px solid #fff; }
-        .pos-default { background-color: #e2e8f0; color: #475569; font-weight: bold; }
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        .fade-in { animation: fadeIn 0.6s ease-out; }
+        /* FONDO ESTADIO NOCTURNO MLB */
+        body { 
+            font-family: 'Roboto', sans-serif; 
+            background-color: #0f172a;
+            background-image: linear-gradient(rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.95)), 
+                              url('https://images.unsplash.com/photo-1504124610196-0374e2a6c374?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            color: white;
+        }
+
+        /* Efecto Vidrio (Glassmorphism) para tarjetas */
+        .mlb-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Gradiente metálico dorado */
+        .gold-gradient {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+        }
         
-        /* Modal Styles */
-        dialog::backdrop { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
-        dialog[open] { animation: zoomIn 0.3s ease-out; }
-        @keyframes zoomIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        /* Gradiente metálico plateado */
+        .silver-gradient {
+            background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+        }
+
+        /* Gradiente metálico bronce */
+        .bronze-gradient {
+            background: linear-gradient(135deg, #fdba74 0%, #c2410c 100%);
+        }
+
+        /* Scrollbar deportiva */
+        .custom-scrollbar::-webkit-scrollbar { height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #fbbf24; border-radius: 3px; }
+
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tabs MLB */
+        .tab-active { 
+            background: #fbbf24; 
+            color: #0f172a; 
+            border-bottom: 4px solid #b45309;
+            text-shadow: none;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+        }
+        .tab-inactive { 
+            background: rgba(255,255,255,0.05); 
+            color: #94a3b8; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .tab-inactive:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Loader */
+        dialog::backdrop { background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800">
+<body class="min-h-screen flex flex-col">
 
-    <!-- Navbar -->
-    <nav class="bg-pega-navy text-white shadow-xl border-b border-white/10 sticky top-0 z-50">
+    <!-- Navbar Estilo TV -->
+    <nav class="bg-pega-navy/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center gap-3 group">
+                <div class="flex items-center gap-4 group cursor-pointer">
                     <div class="relative">
-                        <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-20 group-hover:opacity-40 transition"></div>
-                        <div class="relative bg-white p-2 rounded-full border-2 border-pega-gold">
+                        <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
+                        <div class="relative bg-white p-2 rounded-full border-2 border-pega-gold transform group-hover:scale-110 transition duration-300">
                             <i data-lucide="baseball" class="w-8 h-8 text-pega-blue fill-current"></i>
                         </div>
                     </div>
                     <div class="flex flex-col">
-                        <span class="font-logo text-2xl tracking-wider text-white leading-none">LIGA PEGA</span>
-                        <span class="text-[10px] text-pega-gold tracking-[0.2em] uppercase font-bold">Pablo Eduardo Gutierrez Alvarez</span>
+                        <span class="font-logo text-3xl tracking-wider text-white leading-none drop-shadow-md">LIGA PEGA</span>
+                        <span class="text-[10px] text-pega-gold tracking-[0.3em] uppercase font-bold">Official Stats</span>
                     </div>
                 </div>
-                <button onclick="fetchData()" class="group flex items-center gap-2 px-5 py-2 bg-pega-red hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg transform hover:-translate-y-0.5 border border-red-500">
-                    <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform duration-700"></i>
-                    <span class="hidden sm:inline">ACTUALIZAR</span>
+                <!-- Botón Refresh -->
+                <button onclick="loadCurrentTab()" class="p-2 hover:bg-white/10 rounded-full transition text-pega-gold hover:text-white hover:rotate-180 duration-700">
+                    <i data-lucide="refresh-cw" class="w-6 h-6"></i>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Hero -->
-    <div class="hero-pattern text-white relative overflow-hidden shadow-2xl pb-16 pt-12 clip-path-slant">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-pega-blue rounded-full filter blur-[100px] opacity-30"></div>
-        <div class="absolute bottom-0 left-0 w-48 h-48 bg-pega-gold rounded-full filter blur-[80px] opacity-20"></div>
+    <!-- Hero Section -->
+    <div class="relative pt-10 pb-6 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <div class="inline-block mb-3 animate-bounce">
-                <span class="bg-pega-gold text-pega-navy font-black text-lg md:text-xl px-6 py-1 rounded transform -skew-x-12 inline-block border-2 border-white shadow-lg">
-                    GRUPO SUPER A-
-                </span>
+            
+            <div class="inline-flex items-center justify-center gap-3 mb-6 animate-pulse">
+                <div class="h-px w-12 bg-gradient-to-r from-transparent to-pega-gold"></div>
+                <span class="text-pega-gold text-xs font-bold tracking-[0.2em] uppercase">Temporada 2025</span>
+                <div class="h-px w-12 bg-gradient-to-l from-transparent to-pega-gold"></div>
             </div>
-            <h1 class="text-4xl md:text-6xl font-sport font-bold uppercase tracking-wide text-white drop-shadow-lg leading-none">
-                TABLA GENERAL
+
+            <h1 class="text-5xl md:text-7xl font-sport font-bold uppercase tracking-wide text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] mb-8 leading-none">
+                CENTRO DE<br><span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">ESTADÍSTICAS</span>
             </h1>
-            <div class="flex items-center justify-center gap-4 mt-6 opacity-80">
-                <div class="h-1 w-12 bg-pega-red rounded-full"></div>
-                <div class="text-pega-gold"><i data-lucide="trophy" class="w-6 h-6"></i></div>
-                <div class="h-1 w-12 bg-pega-red rounded-full"></div>
-            </div>
+
+            <!-- NAVEGACIÓN -->
+            <div class="flex flex-wrap justify-center gap-3" id="tabs-container"></div>
         </div>
     </div>
 
-    <!-- Main -->
-    <main class="flex-grow max-w-7xl mx-auto px-4 w-full -mt-10 relative z-20 pb-12">
-        <div id="loader" class="bg-white p-8 rounded-xl shadow-xl text-center mx-auto max-w-md hidden border-t-4 border-pega-gold">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-pega-navy border-t-pega-gold mx-auto mb-4"></div>
-            <p class="text-pega-navy font-bold text-lg">Cargando Estadísticas...</p>
+    <!-- Main Content -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 w-full relative z-20 pb-12">
+        
+        <div id="loader" class="mlb-card p-12 rounded-2xl text-center mx-auto max-w-md hidden mt-8">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pega-gold mx-auto mb-6"></div>
+            <p class="text-white font-sport text-2xl tracking-wide animate-pulse">CARGANDO DATOS...</p>
         </div>
         
-        <!-- Contenedor de Datos -->
-        <div id="data-container" class="fade-in space-y-6"></div>
-        
-        <!-- Noticias -->
-        <div class="mt-8 bg-white rounded-lg shadow-xl border-l-4 border-pega-gold p-6 relative overflow-hidden fade-in">
-            <div class="flex flex-col md:flex-row items-start gap-4 relative z-10">
-                <div class="bg-pega-navy p-4 rounded-full text-pega-gold shrink-0 shadow-lg">
-                    <i data-lucide="megaphone" class="w-8 h-8"></i>
-                </div>
-                <div class="flex-grow">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
-                        <h3 class="font-sport text-3xl text-pega-navy uppercase flex items-center gap-3">
-                            Últimos Movimientos
-                            <span class="text-xs font-sans font-bold bg-pega-red text-white px-3 py-1 rounded-full animate-pulse tracking-wide">EN VIVO</span>
-                        </h3>
-                        <div class="flex items-center gap-2 text-xs font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                            <i data-lucide="clock" class="w-3 h-3"></i>
-                            <span id="update-time">Actualizando fecha...</span>
-                        </div>
+        <!-- Contenedor Dinámico -->
+        <div id="data-container" class="fade-in space-y-8 mt-4"></div>
+
+        <!-- Sección IA -->
+        <div class="mt-12 mlb-card rounded-2xl p-1 relative overflow-hidden group fade-in">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <div class="bg-[#0f172a]/80 p-6 rounded-xl relative z-10">
+                <div class="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 p-4 rounded-2xl shadow-lg shadow-purple-500/20">
+                        <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
                     </div>
-                    <div class="space-y-3">
-                        <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 hover:bg-blue-50 transition border border-transparent hover:border-blue-100">
-                            <i data-lucide="trending-up" class="w-5 h-5 text-green-600 mt-0.5"></i>
-                            <p class="text-slate-700"><span class="font-bold text-pega-navy">Tabla actualizada</span> con los resultados oficiales.</p>
-                        </div>
+                    <div class="flex-grow">
+                        <h3 class="font-sport text-3xl text-white uppercase mb-1">Análisis Inteligente Gemini</h3>
+                        <p class="text-slate-400 text-sm">Obtén un reporte detallado de la jornada generado por IA.</p>
+                        <div id="ai-report-content" class="mt-4 text-sm text-slate-300 bg-black/30 p-4 rounded-lg border border-white/5 hidden text-left"></div>
                     </div>
+                    <button onclick="generateAIReport()" class="px-6 py-3 bg-white text-pega-navy font-black rounded-lg hover:bg-pega-gold hover:scale-105 transition-all shadow-lg flex items-center gap-2">
+                        GENERAR REPORTE <i data-lucide="zap" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
         </div>
+
     </main>
 
-    <!-- MODAL DE CARGA DE LOGO -->
-    <dialog id="uploadModal" class="rounded-xl shadow-2xl p-0 w-full max-w-md bg-white backdrop:bg-gray-900/50">
-        <div class="bg-pega-navy text-white p-4 flex justify-between items-center">
-            <h3 class="font-sport text-xl flex items-center gap-2">
-                <i data-lucide="shield" class="w-5 h-5 text-pega-gold"></i>
-                ZONA DE CAPITANES
+    <!-- Modal Upload Moderno -->
+    <dialog id="uploadModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-md bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90">
+        <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-5 flex justify-between items-center border-b border-white/10">
+            <h3 class="font-sport text-2xl flex items-center gap-2 tracking-wide text-white">
+                <i data-lucide="shield" class="w-6 h-6 text-pega-gold"></i> ZONA CAPITANES
             </h3>
-            <button onclick="document.getElementById('uploadModal').close()" class="text-gray-400 hover:text-white">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+            <button onclick="document.getElementById('uploadModal').close()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
         </div>
-        <div class="p-6">
-            <p class="text-sm text-gray-500 mb-4">Sube el logo oficial de tu equipo para que aparezca en la tabla general.</p>
-            
-            <form id="uploadForm" class="space-y-4" onsubmit="handleUpload(event)">
+        <div class="p-8">
+            <form id="uploadForm" class="space-y-5" onsubmit="handleUpload(event)">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Nombre del Equipo</label>
-                    <select id="teamSelect" class="w-full border border-gray-300 rounded-lg p-2.5 bg-gray-50 focus:ring-2 focus:ring-pega-blue focus:border-pega-blue outline-none">
-                        <option value="">Selecciona tu equipo...</option>
-                        <!-- Se llenará dinámicamente con JS -->
-                    </select>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Logo (Imagen)</label>
-                    <div class="flex items-center justify-center w-full">
-                        <label for="logoFile" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
-                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                                <i data-lucide="upload-cloud" class="w-8 h-8 text-gray-400 mb-2"></i>
-                                <p class="text-xs text-gray-500">Click para subir imagen (JPG, PNG)</p>
-                            </div>
-                            <input id="logoFile" type="file" class="hidden" accept="image/*" />
-                        </label>
+                    <label class="block text-xs font-bold text-pega-gold uppercase mb-2 tracking-wider">Equipo</label>
+                    <div class="relative">
+                        <select id="teamSelect" class="w-full bg-black/40 border border-white/20 rounded-lg p-3 text-white focus:border-pega-gold focus:ring-1 focus:ring-pega-gold outline-none appearance-none">
+                            <option value="">Seleccionar Equipo...</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-slate-500 pointer-events-none"></i>
                     </div>
                 </div>
-
-                <button type="submit" class="w-full text-white bg-pega-blue hover:bg-blue-800 font-bold rounded-lg text-sm px-5 py-2.5 text-center flex items-center justify-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
+                <div>
+                    <label class="block text-xs font-bold text-pega-gold uppercase mb-2 tracking-wider">Código de Acceso</label>
+                    <input type="password" id="teamPassword" placeholder="••••••••" class="w-full bg-black/40 border border-white/20 rounded-lg p-3 text-white focus:border-pega-gold focus:ring-1 focus:ring-pega-gold outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-pega-gold uppercase mb-2 tracking-wider">Logo Oficial</label>
+                    <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:bg-white/5 transition group">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-500 group-hover:text-pega-gold transition mb-2"></i>
+                            <p class="text-xs text-slate-400">Click para subir (Max 15MB)</p>
+                        </div>
+                        <input id="logoFile" type="file" class="hidden" accept="image/*" />
+                    </label>
+                </div>
+                <button type="submit" class="w-full bg-pega-gold hover:bg-yellow-400 text-pega-navy font-black rounded-lg p-4 uppercase tracking-widest shadow-lg hover:shadow-yellow-500/20 transition transform hover:-translate-y-1">
                     Enviar Logo
                 </button>
             </form>
         </div>
     </dialog>
 
-    <!-- Footer -->
-    <footer class="bg-pega-navy text-slate-400 py-10 border-t-4 border-pega-red">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="text-center md:text-left">
-                <h3 class="font-logo text-2xl text-white">LIGA PEGA</h3>
-                <p class="text-sm mt-1">Softbol de alto nivel.</p>
-            </div>
-            <button onclick="openUploadModal()" class="flex items-center gap-2 bg-white/10 hover:bg-pega-gold hover:text-pega-navy text-white px-4 py-2 rounded-full transition font-bold text-sm border border-white/20">
-                <i data-lucide="shield" class="w-4 h-4"></i>
-                ZONA DE CAPITANES
-            </button>
-            <div class="flex gap-4">
-                <div class="bg-white/5 p-3 rounded-full hover:bg-pega-gold hover:text-pega-navy transition cursor-pointer">
-                    <i data-lucide="facebook" class="w-5 h-5"></i>
-                </div>
-            </div>
-        </div>
-        <div class="text-center text-xs mt-8 pt-4 border-t border-white/10">
-            &copy; 2025 Liga de Softbol PEGA.
+    <footer class="bg-black/50 backdrop-blur-sm text-slate-500 py-8 border-t border-white/5 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+            <span class="text-xs font-medium tracking-wider">© 2025 LIGA SOFTBOL PEGA</span>
+            <button onclick="openUploadModal()" class="text-[10px] uppercase font-bold tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-pega-gold hover:text-pega-navy transition border border-white/10">Acceso Capitanes</button>
         </div>
     </footer>
 
     <script>
-        const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=1141503939&single=true&output=csv";
+        const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
         
-        const HEADERS = [
-            { key: 'pos', label: 'POS', align: 'center' }, { key: 'equipo', label: 'EQUIPO', align: 'left' },
-            { key: 'jj', label: 'JJ', align: 'center' }, { key: 'jg', label: 'JG', align: 'center' },
-            { key: 'je', label: 'JE', align: 'center' }, { key: 'jp', label: 'JP', align: 'center' },
-            { key: 'cf', label: 'CF', align: 'center' }, { key: 'cc', label: 'CC', align: 'center' },
-            { key: 'dif', label: 'DIF', align: 'center' }
+        const TABS = [
+            { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12 }, 
+            { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12 },
+            { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12 },
+            { id: 'grupo-a-4plus', name: 'GRUPO A++++', gid: '15007088', type: 'standing', maxRows: 12 },
+            { id: 'grupo-b', name: 'GRUPO B', gid: '806756321', type: 'standing', maxRows: 12 },
+            { id: 'grupo-c', name: 'GRUPO C', gid: '575223888', type: 'standing', maxRows: 12 },
+            { id: 'grupo-fds-a', name: 'FDS A', gid: '2031015446', type: 'standing', maxRows: 12 },
+            { id: 'grupo-fds-b', name: 'FDS B', gid: '803338116', type: 'standing', maxRows: 12 },
+            { id: 'grupo-fds-c', name: 'FDS C', gid: '1068943726', type: 'standing', maxRows: 12 },
+            { id: 'leader-avg', name: 'AVG', gid: '0', type: 'leader', colStart: 0, nameCol: 0, teamCol: 1, statCol: 2, groupCol: 3, icon: 'crosshair', color: 'from-blue-600 to-blue-800', label: 'AVG' },
+            { id: 'leader-hr', name: 'HR', gid: '0', type: 'leader', colStart: 4, nameCol: 4, teamCol: 5, statCol: 6, groupCol: 7, icon: 'zap', color: 'from-red-600 to-red-800', label: 'HR' },
+            { id: 'leader-jg', name: 'JG', gid: '0', type: 'leader', colStart: 8, nameCol: 8, teamCol: 9, statCol: 10, groupCol: 11, icon: 'trophy', color: 'from-yellow-500 to-yellow-700', label: 'JG' }
         ];
 
+        const DISPLAY_ORDER_PRIORITY = [
+            "SUPER A-", "GRUPO SUPER A-", 
+            "A-", "GRUPO A-", 
+            "A+", "GRUPO A+", 
+            "A++++", "A+++", "GRUPO A++++", "GRUPO A+++",
+            "B", "GRUPO B", 
+            "C", "GRUPO C", 
+            "FDS A", "GRUPO FDS A", 
+            "FDS B", "GRUPO FDS B", 
+            "FDS C", "GRUPO FDS C"
+        ];
+
+        let currentTabId = 'super-a';
+        let globalData = [];
         let loadedTeams = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            fetchData();
+            renderTabs();
+            loadCurrentTab();
         });
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = TABS.map(tab => {
+                const isLeader = tab.type === 'leader';
+                return `
+                <button 
+                    onclick="switchTab('${tab.id}')"
+                    class="px-5 py-2.5 rounded-lg font-bold text-sm tracking-wide transition-all transform hover:-translate-y-1 hover:shadow-lg
+                    ${currentTabId === tab.id ? 'tab-active' : 'tab-inactive'}
+                    ${isLeader ? 'border-pega-gold/50' : ''}"
+                >
+                    ${isLeader ? `<span class="flex items-center gap-1"><i data-lucide="${tab.icon}" class="w-3 h-3"></i> ${tab.name}</span>` : tab.name}
+                </button>
+            `}).join('');
+            lucide.createIcons();
+        }
+
+        function switchTab(id) {
+            currentTabId = id;
+            renderTabs();
+            loadCurrentTab();
+        }
+
+        async function loadCurrentTab() {
+            const container = document.getElementById('data-container');
+            const loader = document.getElementById('loader');
+            const activeTab = TABS.find(t => t.id === currentTabId);
+
+            container.innerHTML = '';
+            loader.style.display = 'block';
+
+            const csvUrl = `${BASE_SHEET_URL}?gid=${activeTab.gid}&single=true&output=csv`;
+
+            try {
+                let text;
+                try {
+                    const res = await fetch(csvUrl);
+                    if(!res.ok) throw new Error("Direct fail");
+                    text = await res.text();
+                } catch(e) {
+                    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(csvUrl)}`;
+                    const res = await fetch(proxy);
+                    text = await res.text();
+                }
+
+                let rows = parseCSV(text);
+                
+                if (activeTab.type === 'leader') {
+                    let slicedRows = rows.slice(0, 45); 
+                    let groupedData = processLeaderData(slicedRows, activeTab);
+                    renderGroupedLeaderBoard(groupedData, activeTab);
+                } else {
+                    if (activeTab.maxRows) rows = rows.slice(0, activeTab.maxRows);
+                    const cleanRows = rows.filter(r => r.length > 1 && r[0] !== "" && !r[0].toUpperCase().includes("POS") && !r[1].toUpperCase().includes("EQUIPO"));
+                    globalData = cleanRows;
+                    renderStandings(cleanRows);
+                    loadedTeams = cleanRows.map(r => r[1]); 
+                }
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="bg-red-900/50 border border-red-500 text-white p-6 rounded-xl text-center">No se pudo cargar la pestaña.</div>`;
+            } finally {
+                loader.style.display = 'none';
+                lucide.createIcons();
+            }
+        }
+
+        function processLeaderData(rows, config) {
+            let groups = {};
+            let currentGroupName = "GENERAL";
+            
+            rows.forEach((r, index) => {
+                if (r[config.colStart] && isNaN(r[config.colStart]) && r[config.colStart].length > 3) { }
+
+                let groupIndex = Math.floor(index / 5);
+                // Fallback de nombres si no hay en col D
+                const fallbackNames = [
+                    "SUPER A-", "GRUPO A-", "GRUPO A+", "GRUPO A++++", 
+                    "GRUPO B", "GRUPO C", "FDS A", "FDS B", "FDS C"
+                ];
+                if (groupIndex < fallbackNames.length) {
+                    currentGroupName = fallbackNames[groupIndex];
+                }
+
+                if (r[config.groupCol] && r[config.groupCol].trim() !== "") {
+                    currentGroupName = r[config.groupCol].trim().toUpperCase();
+                }
+
+                let player = {
+                    rank: 0, 
+                    name: r[config.nameCol] || '', 
+                    team: r[config.teamCol] || '', 
+                    stat: r[config.statCol] || '0'
+                };
+
+                if (player.name && player.name !== "" && player.stat !== '0') {
+                    if (!groups[currentGroupName]) groups[currentGroupName] = [];
+                    groups[currentGroupName].push(player);
+                }
+            });
+
+            for (let g in groups) {
+                groups[g].sort((a, b) => parseFloat(b.stat) - parseFloat(a.stat));
+            }
+
+            return groups;
+        }
+
+        function renderGroupedLeaderBoard(groups, config) {
+            const container = document.getElementById('data-container');
+            
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+            
+            const sortedGroupKeys = Object.keys(groups).sort((a, b) => {
+                let idxA = DISPLAY_ORDER_PRIORITY.indexOf(a);
+                let idxB = DISPLAY_ORDER_PRIORITY.indexOf(b);
+                if (idxA === -1) idxA = 999;
+                if (idxB === -1) idxB = 999;
+                return idxA - idxB;
+            });
+
+            for (let groupName of sortedGroupKeys) {
+                const players = groups[groupName];
+                const top5 = players.slice(0, 5);
+                
+                html += `
+                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-pega-gold/50 transition duration-300">
+                    <div class="bg-gradient-to-r ${config.color} p-4 text-white flex items-center justify-between border-b border-white/10">
+                        <div>
+                            <h3 class="font-sport text-2xl uppercase tracking-wider drop-shadow-md">${groupName}</h3>
+                            <span class="text-[10px] font-bold tracking-widest opacity-80 bg-black/20 px-2 py-0.5 rounded">TOP 5 ${config.label}</span>
+                        </div>
+                        <i data-lucide="${config.icon}" class="w-8 h-8 text-white/20 transform group-hover:scale-125 group-hover:rotate-12 transition duration-500"></i>
+                    </div>
+                    
+                    <div class="p-0 flex-grow bg-[#0f172a]/40">
+                        ${top5.map((p, i) => {
+                            let rankStyle = '';
+                            let icon = '';
+                            let rowBg = 'border-b border-white/5';
+                            
+                            if (i === 0) {
+                                rankStyle = 'text-yellow-400';
+                                icon = 'medal';
+                                rowBg = 'bg-gradient-to-r from-yellow-500/10 to-transparent border-b border-yellow-500/20';
+                            } else if (i === 1) {
+                                rankStyle = 'text-slate-300';
+                                icon = 'medal';
+                            } else if (i === 2) {
+                                rankStyle = 'text-orange-400';
+                                icon = 'medal';
+                            } else {
+                                rankStyle = 'text-slate-500 font-sport text-xl';
+                            }
+
+                            return `
+                            <div class="flex items-center justify-between p-3 ${rowBg} hover:bg-white/5 transition">
+                                <div class="flex items-center gap-3 w-full">
+                                    <div class="w-8 flex justify-center flex-shrink-0 ${rankStyle}">
+                                        ${i < 3 ? `<i data-lucide="${icon}" class="w-6 h-6"></i>` : `<span class="font-bold">${i+1}</span>`}
+                                    </div>
+                                    <div class="min-w-0 flex-grow">
+                                        <p class="font-black text-white text-sm uppercase truncate font-sport tracking-wide leading-none mb-0.5">${p.name.toLowerCase()}</p>
+                                        <p class="text-[10px] text-slate-400 font-bold uppercase truncate">${p.team}</p>
+                                    </div>
+                                    <div class="text-right pl-2">
+                                        <span class="font-sport font-black text-2xl text-white tracking-widest">${p.stat}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                        ${top5.length === 0 ? '<div class="text-center text-xs text-slate-500 py-8 italic">Sin datos registrados</div>' : ''}
+                    </div>
+                </div>
+                `;
+            }
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderStandings(data) {
+            const container = document.getElementById('data-container');
+            const headers = ['POS', 'EQUIPO', 'JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'];
+            
+            let html = `
+                <div class="mlb-card rounded-xl overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gradient-to-r from-pega-navy to-black text-white font-sport text-lg border-b border-pega-gold/50">
+                                <tr>${headers.map(h => `<th class="px-4 py-4 text-center tracking-wider">${h}</th>`).join('')}</tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                ${data.map(row => {
+                                    const pos = row[0];
+                                    let rowClass = 'hover:bg-white/5 transition text-center font-medium text-slate-300';
+                                    let posBadge = 'bg-slate-700 text-slate-300';
+                                    
+                                    if(pos==1) { posBadge='gold-gradient text-black shadow-lg shadow-yellow-500/50'; rowClass += ' bg-yellow-500/5'; }
+                                    if(pos==2) { posBadge='silver-gradient text-black'; }
+                                    if(pos==3) { posBadge='bronze-gradient text-white'; }
+                                    
+                                    const get = i => row[i] || '-';
+                                    
+                                    return `
+                                    <tr class="${rowClass}">
+                                        <td class="px-4 py-3"><span class="inline-flex w-8 h-8 rounded-lg items-center justify-center text-xs font-black ${posBadge}">${pos}</span></td>
+                                        <td class="px-4 py-3 text-left font-bold text-white font-sport text-lg tracking-wide uppercase">${get(1)}</td>
+                                        <td class="px-4 py-3 font-mono">${get(2)}</td>
+                                        <td class="px-4 py-3 text-green-400 font-bold bg-green-500/10 rounded">${get(3)}</td>
+                                        <td class="px-4 py-3 text-slate-500">${get(4)}</td>
+                                        <td class="px-4 py-3 text-red-400 bg-red-500/10 rounded">${get(5)}</td>
+                                        <td class="px-4 py-3 text-blue-400">${get(6)}</td>
+                                        <td class="px-4 py-3 text-orange-400">${get(7)}</td>
+                                        <td class="px-4 py-3 font-black text-white text-lg">${get(8)}</td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            // Mobile Cards View
+            html += `<div class="md:hidden grid gap-4">
+                ${data.map(row => `
+                    <div class="mlb-card p-5 rounded-xl border-l-4 ${row[0]==1?'border-pega-gold bg-gradient-to-r from-yellow-500/10 to-transparent':'border-slate-600'}">
+                        <div class="flex justify-between items-center mb-3">
+                            <div class="flex items-center gap-3">
+                                <span class="font-sport text-3xl text-white/20 font-bold">#${row[0]}</span>
+                                <h3 class="font-black text-white uppercase text-lg leading-tight">${row[1]}</h3>
+                            </div>
+                            <span class="text-[10px] font-bold bg-white/10 text-white px-2 py-1 rounded border border-white/10">DIF ${row[8]}</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 text-center text-xs bg-black/20 p-3 rounded-lg border border-white/5">
+                            <div><span class="text-[9px] block text-slate-500 uppercase tracking-wider mb-1">JJ</span><b class="text-white text-base font-sport">${row[2]}</b></div>
+                            <div><span class="text-[9px] block text-green-500 uppercase tracking-wider mb-1">GAN</span><b class="text-green-400 text-base font-sport">${row[3]}</b></div>
+                            <div><span class="text-[9px] block text-red-500 uppercase tracking-wider mb-1">PER</span><b class="text-red-400 text-base font-sport">${row[5]}</b></div>
+                            <div><span class="text-[9px] block text-blue-500 uppercase tracking-wider mb-1">CF</span><b class="text-blue-400 text-base font-sport">${row[6]}</b></div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+        function parseCSV(text) {
+            return text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
+        }
 
         function openUploadModal() {
             const modal = document.getElementById('uploadModal');
             const select = document.getElementById('teamSelect');
             if(loadedTeams.length > 0) {
-                select.innerHTML = '<option value="">Selecciona tu equipo...</option>';
-                loadedTeams.forEach(team => {
-                    const option = document.createElement('option');
-                    option.value = team;
-                    option.textContent = team;
-                    select.appendChild(option);
-                });
+                select.innerHTML = '<option value="">Selecciona...</option>' + loadedTeams.map(t => `<option value="${t}">${t}</option>`).join('');
             }
             modal.showModal();
         }
 
-        async function fetchData() {
-            const container = document.getElementById('data-container');
-            const loader = document.getElementById('loader');
-            loader.style.display = 'block';
-            container.style.opacity = '0.5';
+        window.generateAIReport = () => alert("Función disponible próximamente.");
 
-            try {
-                let csvText;
-                
-                // 1. Intento Directo (Funciona en Web)
-                try {
-                    const response = await fetch(SHEET_CSV_URL);
-                    if (!response.ok) throw new Error("Fallo directo");
-                    csvText = await response.text();
-                } catch (e) {
-                    console.warn("Intento directo falló (posiblemente por estar en local), activando puente proxy...");
-                    
-                    // 2. Intento con Puente (Funciona en Local)
-                    // Usamos 'allorigins' para saltar el bloqueo CORS del navegador
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(SHEET_CSV_URL)}`;
-                    const responseProxy = await fetch(proxyUrl);
-                    if (!responseProxy.ok) throw new Error("Fallo también el puente");
-                    csvText = await responseProxy.text();
-                }
-
-                const rows = parseCSV(csvText);
-
-                // Filtro mejorado
-                let cleanRows = rows.filter(row => {
-                    if (!row || row.length < 2) return false;
-                    const pos = row[0].trim();
-                    const team = row[1].trim();
-                    if (team === '') return false;
-                    if (pos.toUpperCase() === 'POS' || team.toUpperCase() === 'EQUIPO') return false;
-                    if (pos === '-' || team.toUpperCase().includes('GRUPO') || row[2] === 'JJ') return false;
-                    return true;
-                });
-
-                loadedTeams = cleanRows.map(row => row[1]);
-                renderData(cleanRows);
-                updateLastModifiedDate();
-
-            } catch (error) {
-                console.error("Detalle del error:", error);
-                container.innerHTML = `
-                    <div class="bg-red-100 text-red-700 p-6 rounded-lg text-center border-2 border-red-200 shadow-md">
-                        <i data-lucide="alert-triangle" class="w-12 h-12 mx-auto mb-3 text-red-500"></i>
-                        <h3 class="font-bold text-lg mb-1">No pudimos cargar la tabla</h3>
-                        <p class="text-sm text-red-600">Verifica tu conexión a internet.</p>
-                    </div>`;
-                lucide.createIcons();
-            } finally {
-                loader.style.display = 'none';
-                container.style.opacity = '1';
-            }
-        }
-
-        function updateLastModifiedDate() {
-            const dateElement = document.getElementById('update-time');
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-            let fechaTexto = now.toLocaleDateString('es-MX', options);
-            fechaTexto = fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1);
-            dateElement.textContent = fechaTexto;
-        }
-
-        function parseCSV(text) {
-            return text.split('\n').map(line => line.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
-        }
-
-        function renderData(data) {
-            const container = document.getElementById('data-container');
-            if (data.length === 0) {
-                container.innerHTML = '<div class="text-center text-gray-500 p-10 bg-white rounded shadow">No se encontraron datos en la hoja.</div>';
-                return;
-            }
-
-            let html = `
-                <div class="hidden md:block bg-white rounded-lg shadow-2xl overflow-hidden">
-                    <div class="overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-sm">
-                            <thead class="table-header text-white font-sport text-lg tracking-wide">
-                                <tr>${HEADERS.map(h => `<th class="px-6 py-4 font-normal ${h.align==='center'?'text-center':'text-left'}">${h.label}</th>`).join('')}</tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">${data.map(row => renderRow(row)).join('')}</tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-            html += `<div class="md:hidden grid grid-cols-1 gap-4">${data.map(row => renderCard(row)).join('')}</div>`;
-            container.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        function renderRow(row) {
-            const get = (i) => row[i] || '-';
-            const pos = get(0);
-            let badge = 'pos-default';
-            if(pos==1) badge='pos-1'; if(pos==2) badge='pos-2'; if(pos==3) badge='pos-3';
-
-            return `
-                <tr class="hover:bg-blue-50 transition group font-medium text-slate-700">
-                    <td class="px-6 py-4 text-center"><span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${badge}">${pos}</span></td>
-                    <td class="px-6 py-4 font-bold text-pega-navy text-base group-hover:text-pega-blue transition uppercase tracking-tight">${get(1)}</td>
-                    <td class="px-6 py-4 text-center">${get(2)}</td>
-                    <td class="px-6 py-4 text-center text-green-600 font-bold bg-green-50 rounded">${get(3)}</td>
-                    <td class="px-6 py-4 text-center text-slate-500">${get(4)}</td>
-                    <td class="px-6 py-4 text-center text-red-500 bg-red-50 rounded">${get(5)}</td>
-                    <td class="px-6 py-4 text-center text-blue-600 font-mono">${get(6)}</td>
-                    <td class="px-6 py-4 text-center text-orange-600 font-mono">${get(7)}</td>
-                    <td class="px-6 py-4 text-center font-black text-lg text-pega-navy">${get(8)}</td>
-                </tr>
-            `;
-        }
-
-        function renderCard(row) {
-            const get = (i) => row[i] || '-';
-            const pos = get(0);
-            let borderClass = 'border-l-4 border-slate-200';
-            if(pos==1) borderClass='border-l-4 border-pega-gold'; if(pos==2) borderClass='border-l-4 border-slate-400'; if(pos==3) borderClass='border-l-4 border-orange-600';
-
-            return `
-                <div class="bg-white rounded-r-lg shadow-md p-4 relative overflow-hidden ${borderClass}">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3">
-                             <span class="text-3xl font-sport text-slate-200 font-bold italic">#${pos}</span>
-                             <div><h3 class="font-black text-lg text-pega-navy uppercase leading-tight">${get(1)}</h3></div>
-                        </div>
-                        <div class="text-right"><span class="text-xs font-bold text-white bg-pega-navy px-2 py-1 rounded">DIF: ${get(8)}</span></div>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2 text-center text-sm bg-slate-50 p-2 rounded-lg mb-2">
-                        <div><span class="block text-[10px] text-slate-400 uppercase">JJ</span><strong class="text-slate-700 text-lg">${get(2)}</strong></div>
-                        <div><span class="block text-[10px] text-green-600 uppercase">JG</span><strong class="text-green-600 text-lg">${get(3)}</strong></div>
-                        <div><span class="block text-[10px] text-slate-500 uppercase">JE</span><strong class="text-slate-500 text-lg">${get(4)}</strong></div>
-                        <div><span class="block text-[10px] text-red-500 uppercase">JP</span><strong class="text-red-500 text-lg">${get(5)}</strong></div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2 text-center text-xs">
-                        <div class="bg-blue-50 p-1 rounded"><span class="text-blue-500 font-bold">CF: ${get(6)}</span></div>
-                        <div class="bg-orange-50 p-1 rounded"><span class="text-orange-500 font-bold">CC: ${get(7)}</span></div>
-                    </div>
-                </div>
-            `;
-        }
     </script>
 </body>
 </html>
