@@ -205,14 +205,13 @@
             <div class="flex justify-between h-20 items-center">
                 <!-- Logo con acción de volver al inicio -->
                 <div class="flex items-center gap-3 group cursor-pointer" onclick="goHome()">
-                    <div class="relative">
-                        <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
-                        <div class="relative bg-white p-1.5 rounded-full border-2 border-pega-gold transform group-hover:scale-110 transition duration-300">
-                            <i data-lucide="baseball" class="w-6 h-6 text-pega-blue fill-current"></i>
-                        </div>
-                    </div>
+                    <!-- NUEVO LOGO INTEGRADO EN LA BARRA -->
+                    <img src="https://lh3.googleusercontent.com/d/1xVgxSB_gC5pXVMXugk3E0USkJZvk_c0_" 
+                         alt="Liga Softbol Pega"
+                         class="h-12 w-auto object-contain drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] transform group-hover:scale-105 transition duration-300">
+                    
                     <div class="flex flex-col">
-                        <span class="font-logo text-2xl md:text-3xl tracking-wider text-white leading-none drop-shadow-md">LIGA PEGA</span>
+                        <span class="font-logo text-2xl md:text-3xl tracking-wider text-white leading-none drop-shadow-md">LIGA SOFTBOL PEGA</span>
                         <span class="text-[8px] md:text-[10px] text-pega-gold tracking-[0.2em] uppercase font-bold">Official Stats</span>
                     </div>
                 </div>
@@ -237,15 +236,20 @@
     <!-- Hero -->
     <div class="relative pt-6 pb-4 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 relative z-10 text-center">
-            <div class="inline-flex items-center justify-center gap-3 mb-4 animate-pulse">
+            <!-- Barra Superior Temporada -->
+            <div class="inline-flex items-center justify-center gap-3 mb-6 animate-pulse">
                 <div class="h-px w-8 md:w-12 bg-gradient-to-r from-transparent to-pega-gold"></div>
                 <span class="text-pega-gold text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase">11 VA TEMPORADA</span>
                 <div class="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-pega-gold"></div>
             </div>
-            <h1 class="text-4xl md:text-6xl font-sport font-bold uppercase tracking-wide text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)] mb-2 leading-none">
-                LIGA DE SOFBOL<br><span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400">ROMEROS LEAGUE</span>
-            </h1>
-            <p class="text-xs md:text-base text-pega-gold/90 font-bold tracking-widest uppercase mb-6 opacity-80">(¡ANIMO MI REY!)</p>
+            
+            <!-- Logo Oficial Central (Enlace optimizado lh3) -->
+            <div class="flex justify-center mb-8">
+                <img src="https://lh3.googleusercontent.com/d/1t2kkRjDRo3hYDk75XkCNhwU-qblzJzkm" 
+                     onerror="this.onerror=null; this.src='https://via.placeholder.com/300x150/0f172a/fbbf24?text=LIGA+PEGA'; this.style.border='2px solid #fbbf24';"
+                     alt="Liga de Softbol Pega - Logo Oficial" 
+                     class="h-auto w-64 md:w-96 max-w-full object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] transform hover:scale-105 transition duration-500">
+            </div>
 
             <!-- MENÚ PRINCIPAL (HOME) -->
             <div id="home-menu" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mt-4 fade-in relative z-30">
@@ -341,7 +345,6 @@
     </main>
 
     <!-- Modal Team Stats (Full Screen Mobile) -->
-    <!-- Clases ajustadas para pantalla completa en móvil y ventana normal en PC -->
     <dialog id="teamStatsModal" class="m-0 w-full h-full max-w-none max-h-full rounded-none md:m-auto md:w-full md:max-w-4xl md:h-auto md:max-h-[85vh] md:rounded-2xl bg-[#0f172a] border-0 md:border md:border-white/10 text-white backdrop:bg-black/90 z-50">
         <div class="flex flex-col h-full">
             <!-- Header Sticky -->
@@ -391,23 +394,28 @@
     <!-- 5. Script Principal -->
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
-        const RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=273219991&single=true&output=csv";
-        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; 
+        // Nueva URL base para los resultados recientes (multi-pestaña)
+        const BASE_RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR46Kv8lY9vPth9ztaF8l1sruX8wgNBTzvBIsl1i0c2bK0MI_PiLdaU1sKrTQOE3yGuEeY5owNK43gZ/pub";
+        
+        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; // ID del libro de jugadores
         
         const TABS = [
-            { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12 }, 
-            { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12 },
-            { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12 },
-            { id: 'grupo-a-4plus', name: 'GRUPO A++++', gid: '15007088', type: 'standing', maxRows: 12 },
-            { id: 'grupo-b', name: 'GRUPO B', gid: '806756321', type: 'standing', maxRows: 12 },
-            { id: 'grupo-c', name: 'GRUPO C', gid: '575223888', type: 'standing', maxRows: 12 },
-            { id: 'grupo-fds-a', name: 'FDS A', gid: '2031015446', type: 'standing', maxRows: 12 },
-            { id: 'grupo-fds-b', name: 'FDS B', gid: '803338116', type: 'standing', maxRows: 12 },
-            { id: 'grupo-fds-c', name: 'FDS C', gid: '1068943726', type: 'standing', maxRows: 12 },
+            // resultsGid: CORREGIDO a '0' para Super A-
+            { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12, rosterId: '1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ', resultsGid: '0' }, 
+            { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12, rosterId: '11y4uBwGd-8UTg03dDKLhPuwM_isVNic6nB-OY_NHDak', resultsGid: '1166409157' },
+            { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12, rosterId: '1cDhovF6tX-l09J6rNnG0jpTyKLGbYhmkuo2Of7o10R8', resultsGid: '570252591' },
+            { id: 'grupo-a-4plus', name: 'GRUPO A++++', gid: '15007088', type: 'standing', maxRows: 12, rosterId: '1TEv0ihmQSwVUsu00V-vXjMFoN-A5appvUx8KcRxsB1w', resultsGid: '1030293845' },
+            { id: 'grupo-b', name: 'GRUPO B', gid: '806756321', type: 'standing', maxRows: 12, rosterId: '1vVa8fkBn6fdw5Ym-Lu9-uEDxITpa1eeDi67NwL-Ycu0', resultsGid: '467270312' },
+            { id: 'grupo-c', name: 'GRUPO C', gid: '575223888', type: 'standing', maxRows: 12, rosterId: '1ZW2IDE3DnBejB8fB3RGtqlszLauGaoSNDq4rBJ2HbyI', resultsGid: '537677949' },
+            { id: 'grupo-fds-a', name: 'FDS A', gid: '2031015446', type: 'standing', maxRows: 12, rosterId: '1SIDkL-yd06mIBv0Tf8zj149vUsJXZHrvaFXn0pWaPf4', resultsGid: '200576593' },
+            { id: 'grupo-fds-b', name: 'FDS B', gid: '803338116', type: 'standing', maxRows: 12, rosterId: '1aXWSIIU6CdDzzjdXYt5nPz6mEfvce6NE1lxkf7-Do4w', resultsGid: '1914304897' },
+            { id: 'grupo-fds-c', name: 'FDS C', gid: '1068943726', type: 'standing', maxRows: 12, rosterId: '1cTQJMjlYzNaOi860nduO8jXo-7YjR_3mA0WdyEmq-Bk', resultsGid: '1135898381' },
             { id: 'leader-avg', name: 'AVG', gid: '0', type: 'leader', colStart: 0, nameCol: 0, teamCol: 1, statCol: 2, groupCol: 3, icon: 'crosshair', color: 'from-blue-600 to-blue-800', label: 'AVG' },
             { id: 'leader-hr', name: 'HR', gid: '0', type: 'leader', colStart: 4, nameCol: 4, teamCol: 5, statCol: 6, groupCol: 7, icon: 'zap', color: 'from-red-600 to-red-800', label: 'HR' },
             { id: 'leader-jg', name: 'JG', gid: '0', type: 'leader', colStart: 8, nameCol: 8, teamCol: 9, statCol: 10, groupCol: 11, icon: 'trophy', color: 'from-yellow-500 to-yellow-700', label: 'JG' }
         ];
+
+        const DISPLAY_ORDER_PRIORITY = [ "SUPER A-", "GRUPO SUPER A-", "A-", "GRUPO A-", "A+", "GRUPO A+", "A++++", "A+++", "GRUPO A++++", "GRUPO A+++", "B", "GRUPO B", "C", "GRUPO C", "FDS A", "GRUPO FDS A", "FDS B", "GRUPO FDS B", "FDS C", "GRUPO FDS C" ];
 
         let currentTabId = null;
         let globalData = [];
@@ -492,24 +500,39 @@
             const listEl = document.getElementById(`list-${groupId}`);
             const iconEl = document.getElementById(`icon-${groupId}`);
             const groupConfig = TABS.find(t => t.id === groupId);
+
             const isHidden = listEl.classList.contains('hidden');
             
             if (isHidden) {
                 listEl.classList.remove('hidden');
                 iconEl.style.transform = 'rotate(180deg)';
+                
                 if (listEl.innerHTML.includes('Cargando')) {
                     try {
                         const csvUrl = `${BASE_SHEET_URL}?gid=${groupConfig.gid}&single=true&output=csv`;
                         let text = await fetchWithProxy(csvUrl);
                         let rows = parseCSV(text);
+                        
                         if (groupConfig.maxRows) rows = rows.slice(0, groupConfig.maxRows);
+                        
                         const teams = rows.filter(r => {
                             const name = r[1] ? r[1].trim() : "";
                             return name && !name.toUpperCase().includes("EQUIPO") && !name.toUpperCase().includes("GRUPO") && name !== "-";
                         }).map(r => r[1]);
 
                         if (teams.length > 0) {
-                            listEl.innerHTML = `<div class="grid grid-cols-1 divide-y divide-white/5">${teams.map(team => `<button onclick="openTeamStats('${team}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item"><div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition"><i data-lucide="users" class="w-4 h-4"></i></div><span>${team}</span></button>`).join('')}</div>`;
+                            listEl.innerHTML = `
+                                <div class="grid grid-cols-1 divide-y divide-white/5">
+                                    ${teams.map(team => `
+                                        <button onclick="openTeamStats('${team}', '${groupConfig.rosterId}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item">
+                                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition">
+                                                <i data-lucide="users" class="w-4 h-4"></i>
+                                            </div>
+                                            <span>${team}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            `;
                         } else {
                             listEl.innerHTML = `<div class="p-4 text-slate-500 text-sm text-center">Sin equipos registrados</div>`;
                         }
@@ -525,7 +548,7 @@
         }
 
         // --- VISOR DE ESTADÍSTICAS POR EQUIPO ---
-        async function openTeamStats(teamName) {
+        async function openTeamStats(teamName, rosterSheetId) {
             const modal = document.getElementById('teamStatsModal');
             const content = document.getElementById('teamStatsContent');
             const title = document.getElementById('modalTeamNameText');
@@ -541,7 +564,7 @@
             modal.showModal();
 
             try {
-                const queryUrl = `https://docs.google.com/spreadsheets/d/${PLAYERS_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`;
+                const queryUrl = `https://docs.google.com/spreadsheets/d/${rosterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`;
                 const response = await fetch(queryUrl);
                 if (!response.ok) throw new Error("Equipo no encontrado");
                 
@@ -557,7 +580,7 @@
                 // 2. Procesamiento de filas
                 let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : ''));
 
-                // FILTRO ESTRICTO: Eliminar filas vacías o basura
+                // FILTRO ESTRICTO
                 const nameColIndex = 0; 
                 rows = rows.filter(r => {
                     const name = r[nameColIndex] ? r[nameColIndex].toString().trim() : "";
@@ -567,7 +590,7 @@
                 if (rows.length > 0) {
                     content.innerHTML = `
                         <div class="overflow-x-auto custom-scrollbar rounded-none md:rounded-lg border-t border-b md:border border-white/10 h-full">
-                            <table class="w-full text-left whitespace-nowrap relative border-collapse">
+                            <table class="w-full text-xs md:text-sm text-left whitespace-nowrap relative border-collapse">
                                 <thead class="bg-[#0f172a] text-pega-gold font-bold uppercase sticky top-0 z-10 shadow-md">
                                     <tr>
                                         ${cols.map(c => `<th class="px-2 py-3 text-xs md:text-sm tracking-wider bg-[#0f172a] border-b border-pega-gold/30">${c}</th>`).join('')}
@@ -575,7 +598,6 @@
                                 </thead>
                                 <tbody class="divide-y divide-white/5 bg-[#0f172a]">
                                     ${rows.map((row, i) => {
-                                        // Verificar si es elegible (>= 4 juegos)
                                         let isEligible = false;
                                         if (gamesColIndex !== -1) {
                                             const gamesPlayed = parseInt(row[gamesColIndex]);
@@ -591,20 +613,17 @@
                                         return `
                                         <tr class="transition ${rowClass}">
                                             ${row.map((cell, idx) => {
-                                                // Formateo de AVG/PCT
                                                 let displayCell = cell;
-                                                // Si la columna parece ser AVG o PCT y es un número decimal
                                                 const colName = cols[idx].toUpperCase();
                                                 if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) {
                                                     const val = parseFloat(cell);
                                                     if (val < 1) {
-                                                        displayCell = val.toFixed(3).substring(1); // .750
+                                                        displayCell = val.toFixed(3).substring(1); 
                                                     } else {
-                                                        displayCell = val.toFixed(3); // 1.000
+                                                        displayCell = val.toFixed(3); 
                                                     }
                                                 }
 
-                                                // Nombre (Col 0) más ancho y sticky en móvil
                                                 const cellClass = idx === 0 
                                                     ? "font-bold text-white min-w-[150px] sticky left-0 z-10 bg-inherit border-r border-white/10" 
                                                     : "font-mono text-slate-300 text-center min-w-[40px]";
@@ -634,7 +653,7 @@
                     <div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full">
                         <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
                         <h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4>
-                        <p class="text-slate-400 text-sm">No encontramos la hoja para <strong>"${teamName}"</strong>.</p>
+                        <p class="text-slate-400 text-sm">No encontramos la hoja para <strong>"${teamName}"</strong> en este grupo.</p>
                     </div>
                 `;
             }
@@ -706,7 +725,7 @@
             document.getElementById('analysis-result').classList.add('hidden'); 
 
             const recentResultsContainer = document.getElementById('recent-results');
-            if (activeTab.id === 'super-a') {
+            if (activeTab.resultsGid) { 
                 recentResultsContainer.classList.remove('hidden');
                 loadRecentResults(); 
             } else {
@@ -754,17 +773,26 @@
             scroller.innerHTML = `<div class="text-white text-xs p-4">Cargando resultados...</div>`;
 
             try {
-                let text = await fetchWithProxy(RESULTS_SHEET_URL);
+                const activeTab = TABS.find(t => t.id === currentTabId);
+                const resultsGid = activeTab.resultsGid;
+                
+                if (!resultsGid) return; 
+
+                const csvUrl = `${BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`;
+
+                let text = await fetchWithProxy(csvUrl);
                 let rows = parseCSV(text);
-                const validMatches = rows.filter(r => r[9] && r[9].trim() !== "");
+                
+                // Mapeo Correcto A, B, C, D
+                const validMatches = rows.filter(r => r[0] && r[0].trim() !== "");
                 const last5 = validMatches.slice(-5).reverse(); 
 
                 let html = '';
                 last5.forEach(match => {
-                    const teamA = match[9];
-                    const scoreA = match[10];
-                    const scoreB = match[11];
-                    const teamB = match[12];
+                    const teamA = match[0];
+                    const scoreA = match[1];
+                    const scoreB = match[2];
+                    const teamB = match[3];
 
                     html += `
                         <div class="mlb-card bg-[#0f172a]/90 p-4 md:p-5 rounded-xl min-w-[200px] w-[200px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
@@ -899,25 +927,35 @@
                                     
                                     const get = i => row[i] || '-';
                                     
-                                    // AJUSTES MÓVILES EXTREMOS:
-                                    // Padding: px-0.5 py-0.5
-                                    // Textos: text-sm (Teko)
-                                    // Team Name: max-w-[80px]
+                                    // AJUSTES: Todo blanco excepto JG (Verde)
                                     return `<tr class="${rowClass}">
                                         <td class="px-0.5 py-1 md:px-4 md:py-4"><span class="inline-flex w-4 h-4 md:w-8 md:h-8 rounded items-center justify-center text-[9px] md:text-sm font-black ${posBadge}">${pos}</span></td>
                                         
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-left">
-                                            <div class="font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1">
+                                            <div class="font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1 whitespace-normal break-words">
                                                 ${get(1)}
                                             </div>
                                         </td>
                                         
+                                        <!-- JJ (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(2)}</td>
+                                        
+                                        <!-- JG (Verde - Único color) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-green-400">${get(3)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-slate-500">${get(4)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-red-400">${get(5)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-blue-400">${get(6)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-orange-400">${get(7)}</td>
+                                        
+                                        <!-- JE (Blanco) -->
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(4)}</td>
+                                        
+                                        <!-- JP (Blanco) -->
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-white">${get(5)}</td>
+                                        
+                                        <!-- CF (Blanco) -->
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(6)}</td>
+                                        
+                                        <!-- CC (Blanco) -->
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(7)}</td>
+                                        
+                                        <!-- DIF (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center"><span class="font-[Teko] font-black text-white text-sm md:text-3xl tracking-widest bg-white/5 rounded px-1 md:px-2">${get(8)}</span></td>
                                     </tr>`;
                                 }).join('')}
@@ -1058,7 +1096,7 @@
                                         <div class="font-[Teko] text-3xl text-slate-600 w-8 text-center leading-none">#${pos}</div>
                                         <div class="min-w-0">
                                             <h4 class="text-white font-black text-lg leading-tight uppercase tracking-wide truncate" title="${name}">${name}</h4>
-                                            <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${badgeText}</span>
+                                            <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${statusText}</span>
                                         </div>
                                     </div>
                                     <div class="text-right">
