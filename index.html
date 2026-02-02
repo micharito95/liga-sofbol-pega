@@ -118,6 +118,7 @@
 
     <!-- 4. Estilos Personalizados -->
     <script>
+        // Configuración segura de Tailwind
         function initTailwind() {
             if (typeof tailwind !== 'undefined') {
                 tailwind.config = {
@@ -339,23 +340,25 @@
 
     </main>
 
-    <!-- Modal Team Stats (NUEVO) -->
-    <dialog id="teamStatsModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-2xl bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90 z-50">
-        <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-5 flex justify-between items-center border-b border-white/10">
-            <h3 id="modalTeamName" class="font-sport text-xl md:text-2xl flex items-center gap-2 tracking-wide text-white uppercase truncate">
-                <i data-lucide="users" class="w-6 h-6 text-pega-gold flex-shrink-0"></i> <span id="modalTeamNameText">EQUIPO</span>
-            </h3>
-            <button onclick="document.getElementById('teamStatsModal').close()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
-        </div>
-        <div class="p-4 md:p-6 overflow-y-auto max-h-[70vh]">
-            <div id="teamStatsContent">
-                <div class="animate-pulse flex space-x-4">
-                    <div class="flex-1 space-y-4 py-1">
-                        <div class="h-4 bg-slate-700 rounded w-3/4"></div>
-                        <div class="space-y-2">
-                            <div class="h-4 bg-slate-700 rounded"></div>
-                            <div class="h-4 bg-slate-700 rounded w-5/6"></div>
-                        </div>
+    <!-- Modal Team Stats (Full Screen Mobile) -->
+    <!-- Clases ajustadas para pantalla completa en móvil y ventana normal en PC -->
+    <dialog id="teamStatsModal" class="m-0 w-full h-full max-w-none max-h-full rounded-none md:m-auto md:w-full md:max-w-4xl md:h-auto md:max-h-[85vh] md:rounded-2xl bg-[#0f172a] border-0 md:border md:border-white/10 text-white backdrop:bg-black/90 z-50">
+        <div class="flex flex-col h-full">
+            <!-- Header Sticky -->
+            <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-4 flex justify-between items-center border-b border-white/10 flex-shrink-0 sticky top-0 z-20">
+                <h3 id="modalTeamName" class="font-sport text-xl md:text-3xl flex items-center gap-2 tracking-wide text-white uppercase truncate">
+                    <i data-lucide="users" class="w-6 h-6 text-pega-gold flex-shrink-0"></i> <span id="modalTeamNameText">EQUIPO</span>
+                </h3>
+                <button onclick="document.getElementById('teamStatsModal').close()" class="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            
+            <!-- Contenido Scrollable -->
+            <div class="p-0 md:p-6 overflow-y-auto flex-grow bg-[#0f172a]">
+                <div id="teamStatsContent" class="h-full">
+                    <!-- Loader -->
+                    <div class="flex flex-col items-center justify-center h-full py-12">
+                        <i data-lucide="loader-2" class="w-10 h-10 text-pega-gold animate-spin mb-4"></i>
+                        <p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ROSTER...</p>
                     </div>
                 </div>
             </div>
@@ -389,7 +392,7 @@
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
         const RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=273219991&single=true&output=csv";
-        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; // ID del libro de jugadores
+        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; 
         
         const TABS = [
             { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12 }, 
@@ -489,39 +492,24 @@
             const listEl = document.getElementById(`list-${groupId}`);
             const iconEl = document.getElementById(`icon-${groupId}`);
             const groupConfig = TABS.find(t => t.id === groupId);
-
             const isHidden = listEl.classList.contains('hidden');
             
             if (isHidden) {
                 listEl.classList.remove('hidden');
                 iconEl.style.transform = 'rotate(180deg)';
-                
                 if (listEl.innerHTML.includes('Cargando')) {
                     try {
                         const csvUrl = `${BASE_SHEET_URL}?gid=${groupConfig.gid}&single=true&output=csv`;
                         let text = await fetchWithProxy(csvUrl);
                         let rows = parseCSV(text);
-                        
                         if (groupConfig.maxRows) rows = rows.slice(0, groupConfig.maxRows);
-                        
                         const teams = rows.filter(r => {
                             const name = r[1] ? r[1].trim() : "";
                             return name && !name.toUpperCase().includes("EQUIPO") && !name.toUpperCase().includes("GRUPO") && name !== "-";
                         }).map(r => r[1]);
 
                         if (teams.length > 0) {
-                            listEl.innerHTML = `
-                                <div class="grid grid-cols-1 divide-y divide-white/5">
-                                    ${teams.map(team => `
-                                        <button onclick="openTeamStats('${team}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item">
-                                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition">
-                                                <i data-lucide="users" class="w-4 h-4"></i>
-                                            </div>
-                                            <span>${team}</span>
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            `;
+                            listEl.innerHTML = `<div class="grid grid-cols-1 divide-y divide-white/5">${teams.map(team => `<button onclick="openTeamStats('${team}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item"><div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition"><i data-lucide="users" class="w-4 h-4"></i></div><span>${team}</span></button>`).join('')}</div>`;
                         } else {
                             listEl.innerHTML = `<div class="p-4 text-slate-500 text-sm text-center">Sin equipos registrados</div>`;
                         }
@@ -544,7 +532,7 @@
             
             title.textContent = teamName;
             content.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-12">
+                <div class="flex flex-col items-center justify-center py-12 h-full">
                     <i data-lucide="loader-2" class="w-10 h-10 text-pega-gold animate-spin mb-4"></i>
                     <p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ROSTER...</p>
                 </div>
@@ -563,77 +551,94 @@
                 
                 // 1. Limpieza de encabezados
                 let cols = json.table.cols.map(c => c.label || c.id);
-                // Regex para limpiar "Graphic Lines J." -> "J."
                 cols = cols.map(c => c.replace(/.* J\.$/, 'J.'));
                 const gamesColIndex = cols.findIndex(c => c.trim() === 'J.' || c.trim() === 'J');
 
                 // 2. Procesamiento de filas
                 let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : ''));
 
-                // FILTRO ESTRICTO: Col 0 debe ser nombre válido (no vacío, no 0, no guion)
-                // Usamos índice 0 porque gviz devuelve el rango usado. Asumimos Col A = Nombre
+                // FILTRO ESTRICTO: Eliminar filas vacías o basura
                 const nameColIndex = 0; 
                 rows = rows.filter(r => {
                     const name = r[nameColIndex] ? r[nameColIndex].toString().trim() : "";
-                    return name !== "" && name !== "0" && name !== "-";
+                    return name !== "" && name !== "0" && name !== "-" && name !== "JUGADOR" && name !== "JUGADORES";
                 });
 
                 if (rows.length > 0) {
                     content.innerHTML = `
-                        <div class="overflow-x-auto custom-scrollbar rounded-lg border border-white/10">
-                            <table class="w-full text-xs md:text-sm text-left whitespace-nowrap">
-                                <thead class="bg-white/10 text-pega-gold font-bold uppercase">
+                        <div class="overflow-x-auto custom-scrollbar rounded-none md:rounded-lg border-t border-b md:border border-white/10 h-full">
+                            <table class="w-full text-left whitespace-nowrap relative border-collapse">
+                                <thead class="bg-[#0f172a] text-pega-gold font-bold uppercase sticky top-0 z-10 shadow-md">
                                     <tr>
-                                        ${cols.map(c => `<th class="px-3 py-3">${c}</th>`).join('')}
+                                        ${cols.map(c => `<th class="px-2 py-3 text-xs md:text-sm tracking-wider bg-[#0f172a] border-b border-pega-gold/30">${c}</th>`).join('')}
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-white/5">
+                                <tbody class="divide-y divide-white/5 bg-[#0f172a]">
                                     ${rows.map((row, i) => {
                                         // Verificar si es elegible (>= 4 juegos)
                                         let isEligible = false;
-                                        if (gamesColIndex !== -1 && row[gamesColIndex] >= 4) {
-                                            isEligible = true;
+                                        if (gamesColIndex !== -1) {
+                                            const gamesPlayed = parseInt(row[gamesColIndex]);
+                                            if (!isNaN(gamesPlayed) && gamesPlayed >= 4) {
+                                                isEligible = true;
+                                            }
                                         }
                                         
                                         const rowClass = isEligible 
-                                            ? 'bg-green-900/30 text-green-100 hover:bg-green-900/40' 
-                                            : `hover:bg-white/5 ${i%2===0 ? 'bg-black/20' : ''}`;
+                                            ? 'bg-green-900/20 text-green-100 hover:bg-green-900/30' 
+                                            : `hover:bg-white/5 ${i%2===0 ? 'bg-white/[0.02]' : ''}`;
                                         
                                         return `
                                         <tr class="transition ${rowClass}">
                                             ${row.map((cell, idx) => {
-                                                // Nombre (Col 0) más ancho
-                                                const cellClass = idx === 0 ? "font-bold text-white min-w-[150px]" : "font-mono text-slate-300 text-center";
-                                                return `<td class="px-3 py-2 ${cellClass}">${cell}</td>`;
+                                                // Formateo de AVG/PCT
+                                                let displayCell = cell;
+                                                // Si la columna parece ser AVG o PCT y es un número decimal
+                                                const colName = cols[idx].toUpperCase();
+                                                if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) {
+                                                    const val = parseFloat(cell);
+                                                    if (val < 1) {
+                                                        displayCell = val.toFixed(3).substring(1); // .750
+                                                    } else {
+                                                        displayCell = val.toFixed(3); // 1.000
+                                                    }
+                                                }
+
+                                                // Nombre (Col 0) más ancho y sticky en móvil
+                                                const cellClass = idx === 0 
+                                                    ? "font-bold text-white min-w-[150px] sticky left-0 z-10 bg-inherit border-r border-white/10" 
+                                                    : "font-mono text-slate-300 text-center min-w-[40px]";
+                                                
+                                                return `<td class="px-2 py-2 text-[10px] md:text-xs ${cellClass}">${displayCell}</td>`;
                                             }).join('')}
                                         </tr>
                                     `}).join('')}
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-4 flex justify-between items-center text-xs text-slate-500">
+                        <div class="mt-4 flex justify-between items-center text-[10px] md:text-xs text-slate-500 px-2 pb-2">
                             <span>Datos oficiales</span>
                             <div class="flex items-center gap-2">
                                 <span class="w-3 h-3 bg-green-900/50 border border-green-500/30 rounded-full inline-block"></span>
-                                <span>Jugadores Elegibles (4+ Juegos)</span>
+                                <span>Elegibles (4+ J)</span>
                             </div>
                         </div>
                     `;
                 } else {
-                    content.innerHTML = `<div class="p-8 text-center text-slate-400 border border-dashed border-white/20 rounded-lg">No hay jugadores registrados.</div>`;
+                    content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><i data-lucide="clipboard-x" class="w-12 h-12 mb-2 text-slate-600"></i><p>No hay jugadores registrados.</p></div>`;
                 }
 
             } catch (error) {
                 console.error(error);
                 content.innerHTML = `
-                    <div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg">
+                    <div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full">
                         <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
                         <h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4>
                         <p class="text-slate-400 text-sm">No encontramos la hoja para <strong>"${teamName}"</strong>.</p>
                     </div>
                 `;
-                refreshIcons();
             }
+            refreshIcons();
         }
 
         // Resto de funciones (renderTabs, switchTab, etc.) se mantienen igual...
