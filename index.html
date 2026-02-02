@@ -21,7 +21,6 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // TUS LLAVES REALES
         const firebaseConfig = {
             apiKey: "AIzaSyBiyx9qNhBgXknIsM3kmanksNsOKi4p090",
             authDomain: "liga-softbol-pega.firebaseapp.com",
@@ -32,26 +31,18 @@
             measurementId: "G-WKK22W19CT"
         };
 
-        // Exponer config globalmente
         window.firebaseConfigGlobal = firebaseConfig;
 
-        // Inicialización Segura
         try {
             const app = initializeApp(firebaseConfig);
             window.db = getFirestore(app);
             window.storage = getStorage(app);
             window.auth = getAuth(app);
-            
-            // Login silencioso
-            signInAnonymously(window.auth)
-                .then(() => console.log("🔥 Firebase: Conectado (Anónimo)"))
-                .catch(err => console.warn("⚠️ Firebase Auth:", err.message));
-
+            signInAnonymously(window.auth).catch(err => console.warn("Auth pendiente:", err.message));
         } catch (e) {
-            console.error("❌ Error inicializando Firebase:", e);
+            console.error("Error inicializando Firebase:", e);
         }
 
-        // Función de subida global
         window.handleUpload = async function(event) {
             event.preventDefault();
             const SHARED_PASSWORD = "SOFTBOL2025";
@@ -89,12 +80,9 @@
             try {
                 const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
                 const storageRef = ref(window.storage, fileName);
-                
-                // Subir archivo
                 const snapshot = await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
-                // Guardar registro
                 await addDoc(collection(window.db, "pending_logos"), {
                     team: teamSelect.value,
                     logoUrl: downloadURL,
@@ -118,7 +106,6 @@
 
     <!-- 4. Estilos Personalizados -->
     <script>
-        // Configuración segura de Tailwind
         function initTailwind() {
             if (typeof tailwind !== 'undefined') {
                 tailwind.config = {
@@ -225,7 +212,7 @@
                     <button onclick="toggleMobileView()" class="p-2 bg-white/5 rounded-full hover:bg-white/10 transition text-slate-300 hover:text-white" title="Vista Celular">
                         <i data-lucide="smartphone" class="w-5 h-5"></i>
                     </button>
-                    <button onclick="loadCurrentTab()" class="p-2 hover:bg-white/10 rounded-full transition text-pega-gold hover:text-white hover:rotate-180 duration-700">
+                    <button onclick="loadCurrentTab(true)" class="p-2 hover:bg-white/10 rounded-full transition text-pega-gold hover:text-white hover:rotate-180 duration-700" title="Actualizar Datos">
                         <i data-lucide="refresh-cw" class="w-5 h-5"></i>
                     </button>
                 </div>
@@ -394,13 +381,14 @@
     <!-- 5. Script Principal -->
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
-        // Nueva URL base para los resultados recientes (multi-pestaña)
+        
+        // URL PARA RESULTADOS (ACTUALIZADA)
         const BASE_RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR46Kv8lY9vPth9ztaF8l1sruX8wgNBTzvBIsl1i0c2bK0MI_PiLdaU1sKrTQOE3yGuEeY5owNK43gZ/pub";
         
         const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; // ID del libro de jugadores
         
         const TABS = [
-            // resultsGid: CORREGIDO a '0' para Super A-
+            // resultsGid: IDs específicos para cada grupo
             { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12, rosterId: '1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ', resultsGid: '0' }, 
             { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12, rosterId: '11y4uBwGd-8UTg03dDKLhPuwM_isVNic6nB-OY_NHDak', resultsGid: '1166409157' },
             { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12, rosterId: '1cDhovF6tX-l09J6rNnG0jpTyKLGbYhmkuo2Of7o10R8', resultsGid: '570252591' },
@@ -437,6 +425,55 @@
             goHome();
             preloadLeaders(); 
         });
+
+        // --- SISTEMA DE CACHÉ ("STALE-WHILE-REVALIDATE") ---
+        async function fetchWithCache(url, forceRefresh = false) {
+            const cacheKey = "cache_" + url;
+            let cachedData = null;
+            let networkPromise = fetchWithProxy(url);
+
+            // 1. Mostrar caché inmediatamente (si existe y no es forzado)
+            if (!forceRefresh) {
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    try {
+                        const { timestamp, data } = JSON.parse(cached);
+                        // Aunque sea viejo, mostramos primero para velocidad
+                        cachedData = data;
+                        console.log("⚡ Mostrando desde caché");
+                    } catch (e) {
+                        console.warn("Caché corrupto", e);
+                    }
+                }
+            }
+
+            // 2. Si tenemos caché, lo devolvemos, pero dejamos la red corriendo
+            if (cachedData) {
+                // Actualizar en segundo plano
+                networkPromise.then(newData => {
+                    if (newData !== cachedData) {
+                        console.log("🔄 Datos nuevos detectados, actualizando...");
+                        localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: newData }));
+                        // Recargar la vista si los datos cambiaron (Opcional: mostrar aviso "Nuevos datos")
+                        // En esta implementación simple, solo actualizamos el caché para la próxima.
+                        // Para actualización en vivo real se necesita reactividad o recargar la función de render.
+                    }
+                });
+                return cachedData;
+            }
+
+            // 3. Si no hay caché, esperamos la red
+            try {
+                console.log("🌐 Descargando datos (Sin caché)...");
+                const data = await networkPromise;
+                if (data && data.length > 50) {
+                    localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: data }));
+                }
+                return data;
+            } catch (error) {
+                throw error;
+            }
+        }
 
         // --- NAVEGACIÓN ---
         function goHome() {
@@ -510,7 +547,8 @@
                 if (listEl.innerHTML.includes('Cargando')) {
                     try {
                         const csvUrl = `${BASE_SHEET_URL}?gid=${groupConfig.gid}&single=true&output=csv`;
-                        let text = await fetchWithProxy(csvUrl);
+                        // Usamos caché para la lista de equipos también
+                        let text = await fetchWithCache(csvUrl);
                         let rows = parseCSV(text);
                         
                         if (groupConfig.maxRows) rows = rows.slice(0, groupConfig.maxRows);
@@ -564,6 +602,8 @@
             modal.showModal();
 
             try {
+                // NOTA: Gviz API no se lleva bien con caché manual simple por ser JSONP/Query, 
+                // pero responde muy rápido. Lo dejamos directo por ahora.
                 const queryUrl = `https://docs.google.com/spreadsheets/d/${rosterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`;
                 const response = await fetch(queryUrl);
                 if (!response.ok) throw new Error("Equipo no encontrado");
@@ -572,15 +612,12 @@
                 const jsonString = txt.substring(47).slice(0, -2);
                 const json = JSON.parse(jsonString);
                 
-                // 1. Limpieza de encabezados
                 let cols = json.table.cols.map(c => c.label || c.id);
                 cols = cols.map(c => c.replace(/.* J\.$/, 'J.'));
                 const gamesColIndex = cols.findIndex(c => c.trim() === 'J.' || c.trim() === 'J');
 
-                // 2. Procesamiento de filas
                 let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : ''));
 
-                // FILTRO ESTRICTO
                 const nameColIndex = 0; 
                 rows = rows.filter(r => {
                     const name = r[nameColIndex] ? r[nameColIndex].toString().trim() : "";
@@ -614,7 +651,7 @@
                                         <tr class="transition ${rowClass}">
                                             ${row.map((cell, idx) => {
                                                 let displayCell = cell;
-                                                const colName = cols[idx].toUpperCase();
+                                                const colName = cols[idx] ? cols[idx].toUpperCase() : '';
                                                 if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) {
                                                     const val = parseFloat(cell);
                                                     if (val < 1) {
@@ -679,7 +716,8 @@
             currentTabId = id;
             const activeTab = TABS.find(t => t.id === id);
             renderTabs(activeTab.type);
-            loadCurrentTab();
+            // Si es un cambio de tab normal, NO forzamos refresh (usa caché)
+            loadCurrentTab(false);
         }
 
         function showToast(message, type = 'info') {
@@ -715,7 +753,7 @@
             return await res.text();
         }
 
-        async function loadCurrentTab() {
+        async function loadCurrentTab(forceRefresh = false) {
             const container = document.getElementById('data-container');
             const loader = document.getElementById('loader');
             const activeTab = TABS.find(t => t.id === currentTabId);
@@ -727,7 +765,8 @@
             const recentResultsContainer = document.getElementById('recent-results');
             if (activeTab.resultsGid) { 
                 recentResultsContainer.classList.remove('hidden');
-                loadRecentResults(); 
+                // Resultados también usan caché
+                loadRecentResults(forceRefresh); 
             } else {
                 recentResultsContainer.classList.add('hidden');
             }
@@ -735,7 +774,8 @@
             const csvUrl = `${BASE_SHEET_URL}?gid=${activeTab.gid}&single=true&output=csv`;
 
             try {
-                let text = await fetchWithProxy(csvUrl);
+                // USA LA FUNCIÓN DE CACHÉ
+                let text = await fetchWithCache(csvUrl, forceRefresh);
                 let rows = parseCSV(text);
                 
                 if (activeTab.type === 'leader') {
@@ -756,6 +796,8 @@
                     loadedTeams = cleanRows.map(r => r[1]); 
                     updateUploadOptions();
                 }
+                
+                if(forceRefresh) showToast("Datos actualizados", "success");
 
             } catch (error) {
                 console.error(error);
@@ -768,7 +810,7 @@
             }
         }
 
-        async function loadRecentResults() {
+        async function loadRecentResults(forceRefresh = false) {
             const scroller = document.getElementById('results-scroller');
             scroller.innerHTML = `<div class="text-white text-xs p-4">Cargando resultados...</div>`;
 
@@ -780,11 +822,10 @@
 
                 const csvUrl = `${BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`;
 
-                let text = await fetchWithProxy(csvUrl);
+                // USA LA FUNCIÓN DE CACHÉ
+                let text = await fetchWithCache(csvUrl, forceRefresh);
                 let rows = parseCSV(text);
-                
-                // Mapeo Correcto A, B, C, D
-                const validMatches = rows.filter(r => r[0] && r[0].trim() !== "");
+                const validMatches = rows.filter(r => r[0] && r[0].trim() !== ""); 
                 const last5 = validMatches.slice(-5).reverse(); 
 
                 let html = '';
@@ -824,10 +865,11 @@
         function parseCSV(text) { return text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, ''))); }
 
         async function preloadLeaders() {
+            // Precarga también usa caché, pero silencioso (sin refresh)
             console.log("Cargando líderes en segundo plano...");
             const csvUrl = `${BASE_SHEET_URL}?gid=0&single=true&output=csv`;
             try {
-                let text = await fetchWithProxy(csvUrl);
+                let text = await fetchWithCache(csvUrl);
                 const rows = parseCSV(text).slice(0, 45); 
                 const leaderConfigs = TABS.filter(t => t.type === 'leader');
                 leaderConfigs.forEach(config => {
@@ -1096,7 +1138,7 @@
                                         <div class="font-[Teko] text-3xl text-slate-600 w-8 text-center leading-none">#${pos}</div>
                                         <div class="min-w-0">
                                             <h4 class="text-white font-black text-lg leading-tight uppercase tracking-wide truncate" title="${name}">${name}</h4>
-                                            <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${statusText}</span>
+                                            <span class="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full inline-block mt-1 ${badgeClass}">${badgeText}</span>
                                         </div>
                                     </div>
                                     <div class="text-right">
