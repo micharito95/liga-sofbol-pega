@@ -32,18 +32,26 @@
             measurementId: "G-WKK22W19CT"
         };
 
+        // Exponer config globalmente
         window.firebaseConfigGlobal = firebaseConfig;
 
+        // Inicialización Segura
         try {
             const app = initializeApp(firebaseConfig);
             window.db = getFirestore(app);
             window.storage = getStorage(app);
             window.auth = getAuth(app);
-            signInAnonymously(window.auth).catch(err => console.warn("Auth pendiente:", err.message));
+            
+            // Login silencioso
+            signInAnonymously(window.auth)
+                .then(() => console.log("🔥 Firebase: Conectado (Anónimo)"))
+                .catch(err => console.warn("⚠️ Firebase Auth:", err.message));
+
         } catch (e) {
-            console.error("Error inicializando Firebase:", e);
+            console.error("❌ Error inicializando Firebase:", e);
         }
 
+        // Función de subida global
         window.handleUpload = async function(event) {
             event.preventDefault();
             const SHARED_PASSWORD = "SOFTBOL2025";
@@ -81,9 +89,12 @@
             try {
                 const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
                 const storageRef = ref(window.storage, fileName);
+                
+                // Subir archivo
                 const snapshot = await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
+                // Guardar registro
                 await addDoc(collection(window.db, "pending_logos"), {
                     team: teamSelect.value,
                     logoUrl: downloadURL,
@@ -191,6 +202,7 @@
     <nav class="bg-pega-navy/90 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-2xl">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-20 items-center">
+                <!-- Logo con acción de volver al inicio -->
                 <div class="flex items-center gap-3 group cursor-pointer" onclick="goHome()">
                     <div class="relative">
                         <div class="absolute inset-0 bg-pega-gold rounded-full blur opacity-40 group-hover:opacity-60 transition duration-500"></div>
@@ -204,10 +216,12 @@
                     </div>
                 </div>
                 
+                <!-- Botones Nav -->
                 <div class="flex gap-2">
                     <button id="back-btn" onclick="goHome()" class="hidden p-2 bg-white/10 rounded-full hover:bg-white/20 transition text-white">
                         <i data-lucide="home" class="w-5 h-5"></i>
                     </button>
+                    <!-- Icono Celular para Evaluar -->
                     <button onclick="toggleMobileView()" class="p-2 bg-white/5 rounded-full hover:bg-white/10 transition text-slate-300 hover:text-white" title="Vista Celular">
                         <i data-lucide="smartphone" class="w-5 h-5"></i>
                     </button>
@@ -232,29 +246,46 @@
             </h1>
             <p class="text-xs md:text-base text-pega-gold/90 font-bold tracking-widest uppercase mb-6 opacity-80">(¡ANIMO MI REY!)</p>
 
-            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto mt-4 fade-in relative z-30">
+            <!-- MENÚ PRINCIPAL (HOME) -->
+            <div id="home-menu" class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-5xl mx-auto mt-4 fade-in relative z-30">
+                <!-- Botón Standings -->
                 <button onclick="enterSection('standing')" class="mlb-card group relative p-6 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-blue/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <h2 class="text-3xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">STANDINGS</h2>
-                            <p class="text-slate-400 text-xs md:text-sm">Tablas generales por grupo</p>
+                            <h2 class="text-2xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">STANDINGS</h2>
+                            <p class="text-slate-400 text-xs md:text-sm">Tablas generales</p>
                         </div>
-                        <i data-lucide="list" class="w-10 h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
+                        <i data-lucide="list" class="w-8 h-8 md:w-10 md:h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
                     </div>
                 </button>
+                
+                <!-- Botón Concentrados -->
+                <button onclick="enterSection('concentrados')" class="mlb-card group relative p-6 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
+                    <div class="absolute inset-0 bg-gradient-to-br from-green-900/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <h2 class="text-2xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">CONCENTRADOS</h2>
+                            <p class="text-slate-400 text-xs md:text-sm">Equipos por grupo</p>
+                        </div>
+                        <i data-lucide="folder-open" class="w-8 h-8 md:w-10 md:h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
+                    </div>
+                </button>
+
+                <!-- Botón Líderes -->
                 <button onclick="enterSection('leader')" class="mlb-card group relative p-6 rounded-2xl text-left hover:border-pega-gold/50 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl hover:shadow-pega-gold/20 cursor-pointer">
                     <div class="absolute inset-0 bg-gradient-to-br from-pega-red/20 to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <h2 class="text-3xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">LÍDERES</h2>
-                            <p class="text-slate-400 text-xs md:text-sm">AVG, HR, JG y estadísticas</p>
+                            <h2 class="text-2xl md:text-4xl font-sport text-white mb-1 group-hover:text-pega-gold transition">LÍDERES</h2>
+                            <p class="text-slate-400 text-xs md:text-sm">Estadísticas</p>
                         </div>
-                        <i data-lucide="trophy" class="w-10 h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
+                        <i data-lucide="trophy" class="w-8 h-8 md:w-10 md:h-10 text-white/20 group-hover:text-pega-gold group-hover:scale-110 transition duration-500"></i>
                     </div>
                 </button>
             </div>
 
+            <!-- NAVEGACIÓN SECUNDARIA (PESTAÑAS) -->
             <div id="tabs-navigation" class="hidden fade-in relative z-30">
                 <div class="flex flex-wrap justify-center gap-2" id="tabs-container"></div>
             </div>
@@ -269,20 +300,26 @@
             <p class="text-white font-sport text-2xl tracking-wide animate-pulse">CARGANDO DATOS...</p>
         </div>
         
-        <!-- RESULTADOS RECIENTES (OPTIMIZADO PARA MÓVIL) -->
+        <!-- RESULTADOS RECIENTES -->
         <div id="recent-results" class="hidden fade-in mb-6">
             <div class="flex items-center justify-between mb-3 px-1">
                 <h3 class="font-sport text-lg md:text-2xl text-pega-gold uppercase flex items-center gap-2">
                     <i data-lucide="calendar-days" class="w-4 h-4 md:w-6 md:h-6"></i> Resultados Recientes
                 </h3>
             </div>
-            <!-- Scroll Horizontal -->
-            <div id="results-scroller" class="flex gap-3 overflow-x-auto custom-scrollbar pb-4 px-1 snap-x snap-mandatory">
-                <!-- Se inyectan con JS -->
-            </div>
+            <div id="results-scroller" class="flex gap-3 overflow-x-auto custom-scrollbar pb-4 px-1 snap-x snap-mandatory"></div>
         </div>
 
+        <!-- CONTENEDOR DATOS PRINCIPAL -->
         <div id="data-container" class="hidden fade-in space-y-6 mt-2"></div>
+
+        <!-- SECCIÓN CONCENTRADOS -->
+        <div id="concentrados-section" class="hidden fade-in mt-4">
+            <h3 class="font-sport text-2xl text-white text-center mb-6 uppercase tracking-wide border-b border-white/10 pb-2">Directorio de Equipos</h3>
+            <div id="concentrados-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Se llenará con JS -->
+            </div>
+        </div>
 
         <!-- Botón Análisis -->
         <div id="analysis-wrapper" class="hidden mt-8 max-w-5xl mx-auto fade-in">
@@ -290,13 +327,10 @@
                 <i data-lucide="bar-chart-3" class="w-5 h-5 md:w-6 md:h-6 text-pega-gold group-hover:animate-pulse"></i>
                 ANALIZAR EQUIPO POR EQUIPO
             </button>
-            
             <div id="analysis-result" class="hidden mt-6 bg-[#0f172a]/95 border border-pega-gold/30 rounded-xl p-4 md:p-6 shadow-2xl relative overflow-hidden backdrop-blur-xl">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-pega-gold to-transparent opacity-50"></div>
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                    <div class="bg-pega-gold/20 p-2 rounded-lg">
-                        <i data-lucide="clipboard-list" class="w-6 h-6 text-pega-gold"></i>
-                    </div>
+                    <div class="bg-pega-gold/20 p-2 rounded-lg"><i data-lucide="clipboard-list" class="w-6 h-6 text-pega-gold"></i></div>
                     <h3 class="font-sport text-2xl text-white tracking-wide">REPORTE DE SCOUTING</h3>
                 </div>
                 <div id="analysis-content" class="text-slate-300 space-y-4"></div>
@@ -304,6 +338,29 @@
         </div>
 
     </main>
+
+    <!-- Modal Team Stats (NUEVO) -->
+    <dialog id="teamStatsModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-2xl bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90 z-50">
+        <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-5 flex justify-between items-center border-b border-white/10">
+            <h3 id="modalTeamName" class="font-sport text-xl md:text-2xl flex items-center gap-2 tracking-wide text-white uppercase truncate">
+                <i data-lucide="users" class="w-6 h-6 text-pega-gold flex-shrink-0"></i> <span id="modalTeamNameText">EQUIPO</span>
+            </h3>
+            <button onclick="document.getElementById('teamStatsModal').close()" class="text-slate-400 hover:text-white transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+        </div>
+        <div class="p-4 md:p-6 overflow-y-auto max-h-[70vh]">
+            <div id="teamStatsContent">
+                <div class="animate-pulse flex space-x-4">
+                    <div class="flex-1 space-y-4 py-1">
+                        <div class="h-4 bg-slate-700 rounded w-3/4"></div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-slate-700 rounded"></div>
+                            <div class="h-4 bg-slate-700 rounded w-5/6"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </dialog>
 
     <!-- Modal Upload -->
     <dialog id="uploadModal" class="rounded-2xl shadow-2xl p-0 w-full max-w-md bg-[#0f172a] border border-white/10 text-white backdrop:bg-black/90 z-50">
@@ -332,6 +389,7 @@
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
         const RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTbbwfGXERgrw9oT76NSLFEnGrFixNZlFzzaznj7nl_hjC370RNL6_GL-EidxKtLTr3VZSqOn_ydOJX/pub?gid=273219991&single=true&output=csv";
+        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; // ID del libro de jugadores
         
         const TABS = [
             { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12 }, 
@@ -347,8 +405,6 @@
             { id: 'leader-hr', name: 'HR', gid: '0', type: 'leader', colStart: 4, nameCol: 4, teamCol: 5, statCol: 6, groupCol: 7, icon: 'zap', color: 'from-red-600 to-red-800', label: 'HR' },
             { id: 'leader-jg', name: 'JG', gid: '0', type: 'leader', colStart: 8, nameCol: 8, teamCol: 9, statCol: 10, groupCol: 11, icon: 'trophy', color: 'from-yellow-500 to-yellow-700', label: 'JG' }
         ];
-
-        const DISPLAY_ORDER_PRIORITY = [ "SUPER A-", "GRUPO SUPER A-", "A-", "GRUPO A-", "A+", "GRUPO A+", "A++++", "A+++", "GRUPO A++++", "GRUPO A+++", "B", "GRUPO B", "C", "GRUPO C", "FDS A", "GRUPO FDS A", "FDS B", "GRUPO FDS B", "FDS C", "GRUPO FDS C" ];
 
         let currentTabId = null;
         let globalData = [];
@@ -378,27 +434,209 @@
             document.getElementById('data-container').classList.add('hidden');
             document.getElementById('analysis-wrapper').classList.add('hidden');
             document.getElementById('recent-results').classList.add('hidden'); 
+            document.getElementById('concentrados-section').classList.add('hidden'); 
             document.getElementById('back-btn').classList.add('hidden');
             currentTabId = null;
         }
 
         function enterSection(type) {
             document.getElementById('home-menu').classList.add('hidden');
-            document.getElementById('tabs-navigation').classList.remove('hidden');
-            document.getElementById('data-container').classList.remove('hidden');
             document.getElementById('back-btn').classList.remove('hidden');
-            
-            if (type === 'standing') {
-                document.getElementById('analysis-wrapper').classList.remove('hidden');
-            } else {
-                document.getElementById('analysis-wrapper').classList.add('hidden');
-            }
 
-            renderTabs(type);
-            const firstTab = TABS.find(t => t.type === type);
-            if (firstTab) switchTab(firstTab.id);
+            document.getElementById('tabs-navigation').classList.add('hidden');
+            document.getElementById('data-container').classList.add('hidden');
+            document.getElementById('analysis-wrapper').classList.add('hidden');
+            document.getElementById('recent-results').classList.add('hidden');
+            document.getElementById('concentrados-section').classList.add('hidden');
+
+            if (type === 'concentrados') {
+                renderConcentradosMenu();
+                document.getElementById('concentrados-section').classList.remove('hidden');
+            } else {
+                document.getElementById('tabs-navigation').classList.remove('hidden');
+                document.getElementById('data-container').classList.remove('hidden');
+                
+                if (type === 'standing') {
+                    document.getElementById('analysis-wrapper').classList.remove('hidden');
+                }
+
+                renderTabs(type);
+                const firstTab = TABS.find(t => t.type === type);
+                if (firstTab) switchTab(firstTab.id);
+            }
         }
 
+        // --- LOGICA CONCENTRADOS ---
+        function renderConcentradosMenu() {
+            const container = document.getElementById('concentrados-grid');
+            const groups = TABS.filter(t => t.type === 'standing');
+            
+            container.innerHTML = groups.map(group => `
+                <div class="mlb-card rounded-xl overflow-hidden border border-white/10 group">
+                    <button onclick="toggleGroupDropdown('${group.id}')" class="w-full text-left p-4 bg-gradient-to-r from-pega-navy to-[#0f172a] hover:from-[#1e3a8a] hover:to-pega-navy transition flex justify-between items-center">
+                        <span class="font-sport text-xl text-white uppercase tracking-wider">${group.name}</span>
+                        <i id="icon-${group.id}" data-lucide="chevron-down" class="w-5 h-5 text-pega-gold transition-transform duration-300"></i>
+                    </button>
+                    <div id="list-${group.id}" class="hidden bg-black/40 border-t border-white/5">
+                        <div class="p-4 text-center text-slate-400 text-sm italic">Cargando equipos...</div>
+                    </div>
+                </div>
+            `).join('');
+            refreshIcons();
+        }
+
+        async function toggleGroupDropdown(groupId) {
+            const listEl = document.getElementById(`list-${groupId}`);
+            const iconEl = document.getElementById(`icon-${groupId}`);
+            const groupConfig = TABS.find(t => t.id === groupId);
+
+            const isHidden = listEl.classList.contains('hidden');
+            
+            if (isHidden) {
+                listEl.classList.remove('hidden');
+                iconEl.style.transform = 'rotate(180deg)';
+                
+                if (listEl.innerHTML.includes('Cargando')) {
+                    try {
+                        const csvUrl = `${BASE_SHEET_URL}?gid=${groupConfig.gid}&single=true&output=csv`;
+                        let text = await fetchWithProxy(csvUrl);
+                        let rows = parseCSV(text);
+                        
+                        if (groupConfig.maxRows) rows = rows.slice(0, groupConfig.maxRows);
+                        
+                        const teams = rows.filter(r => {
+                            const name = r[1] ? r[1].trim() : "";
+                            return name && !name.toUpperCase().includes("EQUIPO") && !name.toUpperCase().includes("GRUPO") && name !== "-";
+                        }).map(r => r[1]);
+
+                        if (teams.length > 0) {
+                            listEl.innerHTML = `
+                                <div class="grid grid-cols-1 divide-y divide-white/5">
+                                    ${teams.map(team => `
+                                        <button onclick="openTeamStats('${team}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item">
+                                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition">
+                                                <i data-lucide="users" class="w-4 h-4"></i>
+                                            </div>
+                                            <span>${team}</span>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            `;
+                        } else {
+                            listEl.innerHTML = `<div class="p-4 text-slate-500 text-sm text-center">Sin equipos registrados</div>`;
+                        }
+                        refreshIcons();
+                    } catch (e) {
+                        listEl.innerHTML = `<div class="p-4 text-red-400 text-sm text-center">Error al cargar</div>`;
+                    }
+                }
+            } else {
+                listEl.classList.add('hidden');
+                iconEl.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- VISOR DE ESTADÍSTICAS POR EQUIPO ---
+        async function openTeamStats(teamName) {
+            const modal = document.getElementById('teamStatsModal');
+            const content = document.getElementById('teamStatsContent');
+            const title = document.getElementById('modalTeamNameText');
+            
+            title.textContent = teamName;
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12">
+                    <i data-lucide="loader-2" class="w-10 h-10 text-pega-gold animate-spin mb-4"></i>
+                    <p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ROSTER...</p>
+                </div>
+            `;
+            refreshIcons();
+            modal.showModal();
+
+            try {
+                const queryUrl = `https://docs.google.com/spreadsheets/d/${PLAYERS_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`;
+                const response = await fetch(queryUrl);
+                if (!response.ok) throw new Error("Equipo no encontrado");
+                
+                const txt = await response.text();
+                const jsonString = txt.substring(47).slice(0, -2);
+                const json = JSON.parse(jsonString);
+                
+                // 1. Limpieza de encabezados
+                let cols = json.table.cols.map(c => c.label || c.id);
+                // Regex para limpiar "Graphic Lines J." -> "J."
+                cols = cols.map(c => c.replace(/.* J\.$/, 'J.'));
+                const gamesColIndex = cols.findIndex(c => c.trim() === 'J.' || c.trim() === 'J');
+
+                // 2. Procesamiento de filas
+                let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : ''));
+
+                // FILTRO ESTRICTO: Col 0 debe ser nombre válido (no vacío, no 0, no guion)
+                // Usamos índice 0 porque gviz devuelve el rango usado. Asumimos Col A = Nombre
+                const nameColIndex = 0; 
+                rows = rows.filter(r => {
+                    const name = r[nameColIndex] ? r[nameColIndex].toString().trim() : "";
+                    return name !== "" && name !== "0" && name !== "-";
+                });
+
+                if (rows.length > 0) {
+                    content.innerHTML = `
+                        <div class="overflow-x-auto custom-scrollbar rounded-lg border border-white/10">
+                            <table class="w-full text-xs md:text-sm text-left whitespace-nowrap">
+                                <thead class="bg-white/10 text-pega-gold font-bold uppercase">
+                                    <tr>
+                                        ${cols.map(c => `<th class="px-3 py-3">${c}</th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5">
+                                    ${rows.map((row, i) => {
+                                        // Verificar si es elegible (>= 4 juegos)
+                                        let isEligible = false;
+                                        if (gamesColIndex !== -1 && row[gamesColIndex] >= 4) {
+                                            isEligible = true;
+                                        }
+                                        
+                                        const rowClass = isEligible 
+                                            ? 'bg-green-900/30 text-green-100 hover:bg-green-900/40' 
+                                            : `hover:bg-white/5 ${i%2===0 ? 'bg-black/20' : ''}`;
+                                        
+                                        return `
+                                        <tr class="transition ${rowClass}">
+                                            ${row.map((cell, idx) => {
+                                                // Nombre (Col 0) más ancho
+                                                const cellClass = idx === 0 ? "font-bold text-white min-w-[150px]" : "font-mono text-slate-300 text-center";
+                                                return `<td class="px-3 py-2 ${cellClass}">${cell}</td>`;
+                                            }).join('')}
+                                        </tr>
+                                    `}).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center text-xs text-slate-500">
+                            <span>Datos oficiales</span>
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 bg-green-900/50 border border-green-500/30 rounded-full inline-block"></span>
+                                <span>Jugadores Elegibles (4+ Juegos)</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `<div class="p-8 text-center text-slate-400 border border-dashed border-white/20 rounded-lg">No hay jugadores registrados.</div>`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                content.innerHTML = `
+                    <div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg">
+                        <i data-lucide="alert-circle" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
+                        <h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4>
+                        <p class="text-slate-400 text-sm">No encontramos la hoja para <strong>"${teamName}"</strong>.</p>
+                    </div>
+                `;
+                refreshIcons();
+            }
+        }
+
+        // Resto de funciones (renderTabs, switchTab, etc.) se mantienen igual...
         function renderTabs(filterType) {
             const container = document.getElementById('tabs-container');
             const filteredTabs = TABS.filter(t => t.type === filterType);
@@ -435,7 +673,6 @@
             }, 4000);
         }
 
-        // --- CARGA DE DATOS ---
         async function fetchWithProxy(url) {
             try {
                 const proxy1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
@@ -524,15 +761,14 @@
                     const scoreB = match[11];
                     const teamB = match[12];
 
-                    // DISEÑO MINIATURA PARA MÓVIL
                     html += `
-                        <div class="mlb-card bg-[#0f172a]/90 p-3 rounded-lg min-w-[130px] border border-white/10 flex flex-col items-center justify-center shadow-md snap-center">
-                            <div class="w-full text-center">
-                                <div class="font-bold text-white text-xs uppercase truncate w-full" title="${teamA}">${teamA}</div>
-                                <div class="bg-black/50 rounded px-2 py-0.5 my-1 border border-pega-gold/30 inline-block">
-                                    <span class="font-[Teko] text-lg text-[#fbbf24] tracking-wider leading-none">${scoreA}-${scoreB}</span>
+                        <div class="mlb-card bg-[#0f172a]/90 p-4 md:p-5 rounded-xl min-w-[200px] w-[200px] border border-white/10 flex flex-col items-center justify-center shadow-lg transform hover:-translate-y-1 transition duration-300 group">
+                            <div class="w-full text-center space-y-2 md:space-y-3">
+                                <div class="font-black text-white text-sm md:text-lg uppercase truncate tracking-wide" title="${teamA}">${teamA}</div>
+                                <div class="bg-black/60 rounded-lg py-1 px-4 md:py-2 md:px-6 border border-pega-gold/40 inline-block shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition">
+                                    <span class="font-sport text-2xl md:text-4xl text-pega-gold tracking-widest leading-none drop-shadow-md">${scoreA}-${scoreB}</span>
                                 </div>
-                                <div class="font-bold text-white text-xs uppercase truncate w-full" title="${teamB}">${teamB}</div>
+                                <div class="font-black text-white text-sm md:text-lg uppercase truncate tracking-wide" title="${teamB}">${teamB}</div>
                             </div>
                         </div>
                     `;
@@ -609,7 +845,7 @@
                 const players = groups[groupName];
                 const top5 = players.slice(0, 5);
                 html += `
-                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-[#fbbf24]/50 transition duration-300">
+                <div class="mlb-card rounded-xl overflow-hidden flex flex-col group hover:border-pega-gold/50 transition duration-300">
                     <div class="bg-gradient-to-r ${config.color} p-4 text-white flex items-center justify-between border-b border-white/10">
                         <div><h3 class="font-sport text-xl md:text-2xl uppercase tracking-wider drop-shadow-md">${groupName}</h3><span class="text-[9px] md:text-[10px] font-bold tracking-widest opacity-80 bg-black/20 px-2 py-0.5 rounded">TOP 5 ${config.label}</span></div>
                         <i data-lucide="${config.icon}" class="w-6 h-6 md:w-8 md:h-8 text-white/20 transform group-hover:scale-125 group-hover:rotate-12 transition duration-500"></i>
@@ -666,18 +902,18 @@
                                         <td class="px-0.5 py-1 md:px-4 md:py-4"><span class="inline-flex w-4 h-4 md:w-8 md:h-8 rounded items-center justify-center text-[9px] md:text-sm font-black ${posBadge}">${pos}</span></td>
                                         
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-left">
-                                            <div class="font-[Teko] font-bold text-white text-base md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1">
+                                            <div class="font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1">
                                                 ${get(1)}
                                             </div>
                                         </td>
                                         
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl text-white">${get(2)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl font-bold text-green-400">${get(3)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl text-slate-500">${get(4)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl font-bold text-red-400">${get(5)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl text-blue-400">${get(6)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-lg md:text-3xl text-orange-400">${get(7)}</td>
-                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center"><span class="font-[Teko] font-black text-white text-lg md:text-3xl tracking-widest bg-white/5 rounded px-1 md:px-2">${get(8)}</span></td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(2)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-green-400">${get(3)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-slate-500">${get(4)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-red-400">${get(5)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-blue-400">${get(6)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-orange-400">${get(7)}</td>
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center"><span class="font-[Teko] font-black text-white text-sm md:text-3xl tracking-widest bg-white/5 rounded px-1 md:px-2">${get(8)}</span></td>
                                     </tr>`;
                                 }).join('')}
                             </tbody>
@@ -873,7 +1109,7 @@
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 }
-            }, 600);
+            }, 800); 
         }
 
         function openUploadModal() {
