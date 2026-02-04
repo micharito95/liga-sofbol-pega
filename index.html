@@ -13,7 +13,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- ========================================== -->
-    <!--     3. CONFIGURACIÓN DE FIREBASE           -->
+    <!--      3. CONFIGURACIÓN DE FIREBASE          -->
     <!-- ========================================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -21,6 +21,7 @@
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // TUS LLAVES REALES
         const firebaseConfig = {
             apiKey: "AIzaSyBiyx9qNhBgXknIsM3kmanksNsOKi4p090",
             authDomain: "liga-softbol-pega.firebaseapp.com",
@@ -31,18 +32,26 @@
             measurementId: "G-WKK22W19CT"
         };
 
+        // Exponer config globalmente
         window.firebaseConfigGlobal = firebaseConfig;
 
+        // Inicialización Segura
         try {
             const app = initializeApp(firebaseConfig);
             window.db = getFirestore(app);
             window.storage = getStorage(app);
             window.auth = getAuth(app);
-            signInAnonymously(window.auth).catch(err => console.warn("Auth pendiente:", err.message));
+            
+            // Login silencioso
+            signInAnonymously(window.auth)
+                .then(() => console.log("🔥 Firebase: Conectado (Anónimo)"))
+                .catch(err => console.warn("⚠️ Firebase Auth:", err.message));
+
         } catch (e) {
-            console.error("Error inicializando Firebase:", e);
+            console.error("❌ Error inicializando Firebase:", e);
         }
 
+        // Función de subida global
         window.handleUpload = async function(event) {
             event.preventDefault();
             const SHARED_PASSWORD = "SOFTBOL2025";
@@ -80,9 +89,12 @@
             try {
                 const fileName = `logos/${teamSelect.value.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}`;
                 const storageRef = ref(window.storage, fileName);
+                
+                // Subir archivo
                 const snapshot = await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(snapshot.ref);
 
+                // Guardar registro
                 await addDoc(collection(window.db, "pending_logos"), {
                     team: teamSelect.value,
                     logoUrl: downloadURL,
@@ -230,7 +242,7 @@
                 <div class="h-px w-8 md:w-12 bg-gradient-to-l from-transparent to-pega-gold"></div>
             </div>
             
-            <!-- Logo Oficial Central (Enlace optimizado lh3) -->
+            <!-- Logo Oficial Central -->
             <div class="flex justify-center mb-8">
                 <img src="https://lh3.googleusercontent.com/d/1t2kkRjDRo3hYDk75XkCNhwU-qblzJzkm" 
                      onerror="this.onerror=null; this.src='https://via.placeholder.com/300x150/0f172a/fbbf24?text=LIGA+PEGA'; this.style.border='2px solid #fbbf24';"
@@ -336,10 +348,12 @@
         <div class="flex flex-col h-full">
             <!-- Header Sticky -->
             <div class="bg-gradient-to-r from-pega-navy to-pega-blue p-4 flex justify-between items-center border-b border-white/10 flex-shrink-0 sticky top-0 z-20">
-                <h3 id="modalTeamName" class="font-sport text-xl md:text-3xl flex items-center gap-2 tracking-wide text-white uppercase truncate">
-                    <i data-lucide="users" class="w-6 h-6 text-pega-gold flex-shrink-0"></i> <span id="modalTeamNameText">EQUIPO</span>
+                <!-- LOGO INSERTADO DINÁMICAMENTE AQUÍ -->
+                <h3 id="modalTeamName" class="font-sport text-xl md:text-3xl flex items-center gap-2 tracking-wide text-white uppercase truncate overflow-hidden">
+                    <span id="modalTeamLogoContainer"></span>
+                    <span id="modalTeamNameText" class="truncate">EQUIPO</span>
                 </h3>
-                <button onclick="document.getElementById('teamStatsModal').close()" class="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><i data-lucide="x" class="w-6 h-6"></i></button>
+                <button onclick="document.getElementById('teamStatsModal').close()" class="p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition flex-shrink-0"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             
             <!-- Contenido Scrollable -->
@@ -381,14 +395,13 @@
     <!-- 5. Script Principal -->
     <script>
         const BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
-        
-        // URL PARA RESULTADOS (ACTUALIZADA)
         const BASE_RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR46Kv8lY9vPth9ztaF8l1sruX8wgNBTzvBIsl1i0c2bK0MI_PiLdaU1sKrTQOE3yGuEeY5owNK43gZ/pub";
         
-        const PLAYERS_SHEET_ID = "1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ"; // ID del libro de jugadores
-        
+        // CACHÉ VERSIONING - ACTUALIZADO V11 (Modal Header Logo)
+        const CACHE_VERSION = "v1.11_modal_logo";
+        const CACHE_DURATION = 60 * 60 * 1000; // 1 Hora
+
         const TABS = [
-            // resultsGid: IDs específicos para cada grupo
             { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12, rosterId: '1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ', resultsGid: '0' }, 
             { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12, rosterId: '11y4uBwGd-8UTg03dDKLhPuwM_isVNic6nB-OY_NHDak', resultsGid: '1166409157' },
             { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12, rosterId: '1cDhovF6tX-l09J6rNnG0jpTyKLGbYhmkuo2Of7o10R8', resultsGid: '570252591' },
@@ -426,45 +439,62 @@
             preloadLeaders(); 
         });
 
-        // --- SISTEMA DE CACHÉ ("STALE-WHILE-REVALIDATE") ---
+        // --- FUNCIONES AUXILIARES AVATAR ---
+        function createAvatarHtml(name, extraClasses = "mx-auto") {
+            if (!name) name = "??";
+            const cleanName = name.replace(/['"]+/g, '');
+            const words = cleanName.split(' ');
+            let initials = words[0][0];
+            if (words.length > 1 && words[1][0]) initials += words[1][0];
+            initials = initials ? initials.toUpperCase() : "?";
+            
+            const colors = [
+                'from-blue-600 to-blue-400', 
+                'from-green-600 to-green-400', 
+                'from-red-600 to-red-400', 
+                'from-purple-600 to-purple-400', 
+                'from-orange-600 to-orange-400'
+            ];
+            const colorClass = colors[cleanName.length % colors.length];
+
+            return `<div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br ${colorClass} flex items-center justify-center text-[10px] md:text-sm font-bold text-white shadow-inner border border-white/10 flex-shrink-0 ${extraClasses}">${initials}</div>`;
+        }
+
+        // --- MANEJO SEGURO DE IMÁGENES ROTAS ---
+        window.handleImageError = function(element, name) {
+            element.onerror = null; 
+            element.outerHTML = createAvatarHtml(name, ""); 
+        }
+
+        // --- SISTEMA DE CACHÉ ---
         async function fetchWithCache(url, forceRefresh = false) {
-            const cacheKey = "cache_" + url;
+            const cacheKey = CACHE_VERSION + "_" + url; 
             let cachedData = null;
             let networkPromise = fetchWithProxy(url);
 
-            // 1. Mostrar caché inmediatamente (si existe y no es forzado)
             if (!forceRefresh) {
                 const cached = localStorage.getItem(cacheKey);
                 if (cached) {
                     try {
                         const { timestamp, data } = JSON.parse(cached);
-                        // Aunque sea viejo, mostramos primero para velocidad
-                        cachedData = data;
-                        console.log("⚡ Mostrando desde caché");
-                    } catch (e) {
-                        console.warn("Caché corrupto", e);
-                    }
+                        const age = Date.now() - timestamp;
+                        if (age < CACHE_DURATION) {
+                            cachedData = data;
+                        }
+                    } catch (e) {}
                 }
             }
 
-            // 2. Si tenemos caché, lo devolvemos, pero dejamos la red corriendo
             if (cachedData) {
-                // Actualizar en segundo plano
                 networkPromise.then(newData => {
                     if (newData !== cachedData) {
-                        console.log("🔄 Datos nuevos detectados, actualizando...");
                         localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: newData }));
-                        // Recargar la vista si los datos cambiaron (Opcional: mostrar aviso "Nuevos datos")
-                        // En esta implementación simple, solo actualizamos el caché para la próxima.
-                        // Para actualización en vivo real se necesita reactividad o recargar la función de render.
                     }
                 });
                 return cachedData;
             }
 
-            // 3. Si no hay caché, esperamos la red
             try {
-                console.log("🌐 Descargando datos (Sin caché)...");
                 const data = await networkPromise;
                 if (data && data.length > 50) {
                     localStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: data }));
@@ -514,7 +544,7 @@
             }
         }
 
-        // --- LOGICA CONCENTRADOS ---
+        // --- LOGICA CONCENTRADOS (CORREGIDA) ---
         function renderConcentradosMenu() {
             const container = document.getElementById('concentrados-grid');
             const groups = TABS.filter(t => t.type === 'standing');
@@ -547,28 +577,46 @@
                 if (listEl.innerHTML.includes('Cargando')) {
                     try {
                         const csvUrl = `${BASE_SHEET_URL}?gid=${groupConfig.gid}&single=true&output=csv`;
-                        // Usamos caché para la lista de equipos también
                         let text = await fetchWithCache(csvUrl);
                         let rows = parseCSV(text);
                         
                         if (groupConfig.maxRows) rows = rows.slice(0, groupConfig.maxRows);
                         
+                        // Extraer Nombre y Logo
                         const teams = rows.filter(r => {
-                            const name = r[1] ? r[1].trim() : "";
-                            return name && !name.toUpperCase().includes("EQUIPO") && !name.toUpperCase().includes("GRUPO") && name !== "-";
-                        }).map(r => r[1]);
+                            const name = r[2] ? r[2].trim() : ""; 
+                            return name && !name.toUpperCase().includes("EQUIPO") && !name.toUpperCase().includes("GRUPO") && name !== "-" && name !== "FOTO";
+                        }).map(r => ({
+                            name: r[2].trim(),
+                            logo: r[1] ? r[1].trim() : ""
+                        })); 
 
                         if (teams.length > 0) {
                             listEl.innerHTML = `
                                 <div class="grid grid-cols-1 divide-y divide-white/5">
-                                    ${teams.map(team => `
-                                        <button onclick="openTeamStats('${team}', '${groupConfig.rosterId}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center gap-2 group/item">
-                                            <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover/item:bg-pega-gold group-hover/item:text-pega-navy transition">
-                                                <i data-lucide="users" class="w-4 h-4"></i>
-                                            </div>
-                                            <span>${team}</span>
+                                    ${teams.map(team => {
+                                        // Lógica para mostrar logo o avatar en la lista
+                                        let logoHtml = createAvatarHtml(team.name, "mr-3"); // Avatar por defecto con margen derecho
+                                        const rawLogoUrl = team.logo;
+                                        
+                                        if (rawLogoUrl && rawLogoUrl.length > 5 && rawLogoUrl !== '#N/A' && !rawLogoUrl.includes(" ")) {
+                                            let finalUrl = rawLogoUrl;
+                                            const drivePattern = /(?:id=|d\/)([a-zA-Z0-9_-]+)/;
+                                            const match = rawLogoUrl.match(drivePattern);
+                                            if (match && match[1]) {
+                                                finalUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                                            }
+                                            // Imagen real sin recorte circular para que se vea natural, tamaño ajustado para lista
+                                            logoHtml = `<img src="${finalUrl}" class="w-8 h-8 object-contain mr-3 flex-shrink-0" referrerpolicy="no-referrer" onerror="handleImageError(this, '${team.name.replace(/'/g, "\\'")}')">`;
+                                        }
+
+                                        // CORREGIDO: Clic en Concentrados -> Abre Modal Estadísticas y pasa el logo
+                                        return `
+                                        <button onclick="openTeamStats('${team.name.replace(/'/g, "\\'")}', '${groupConfig.rosterId}', '${rawLogoUrl}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center group/item">
+                                            ${logoHtml}
+                                            <span>${team.name}</span>
                                         </button>
-                                    `).join('')}
+                                    `}).join('')}
                                 </div>
                             `;
                         } else {
@@ -576,6 +624,7 @@
                         }
                         refreshIcons();
                     } catch (e) {
+                        console.error(e);
                         listEl.innerHTML = `<div class="p-4 text-red-400 text-sm text-center">Error al cargar</div>`;
                     }
                 }
@@ -585,13 +634,42 @@
             }
         }
 
+        // --- CLIC EN EQUIPO (NUEVO) ---
+        function openTeamForm(teamName) {
+            // URL Base provided by user
+            const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSc3wt98a9Sj-E--y_WBnh7e6DZvt6bbg8SGBo_wtIfAlY5K6Q/viewform?usp=pp_url&entry.185157486=";
+            // Prellenar nombre del equipo
+            const finalUrl = baseUrl + encodeURIComponent(teamName);
+            // Abrir en nueva pestaña
+            window.open(finalUrl, '_blank');
+        }
+
         // --- VISOR DE ESTADÍSTICAS POR EQUIPO ---
-        async function openTeamStats(teamName, rosterSheetId) {
+        async function openTeamStats(teamName, rosterSheetId, logoUrl = "") {
             const modal = document.getElementById('teamStatsModal');
             const content = document.getElementById('teamStatsContent');
-            const title = document.getElementById('modalTeamNameText');
+            const titleContainer = document.getElementById('modalTeamName');
+            const logoContainer = document.getElementById('modalTeamLogoContainer');
+            const textContainer = document.getElementById('modalTeamNameText');
+
+            // Set Title
+            textContainer.textContent = teamName;
             
-            title.textContent = teamName;
+            // Generate Logo HTML for Header
+            let headerLogoHtml = `<i data-lucide="users" class="w-6 h-6 text-pega-gold flex-shrink-0"></i>`; // Default icon
+            
+            if (logoUrl && logoUrl.length > 5 && logoUrl !== '#N/A') {
+                 let finalUrl = logoUrl;
+                 const drivePattern = /(?:id=|d\/)([a-zA-Z0-9_-]+)/;
+                 const match = logoUrl.match(drivePattern);
+                 if (match && match[1]) {
+                     finalUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                 }
+                 headerLogoHtml = `<img src="${finalUrl}" class="w-8 h-8 md:w-10 md:h-10 object-contain mr-2" referrerpolicy="no-referrer" onerror="this.outerHTML='<i data-lucide=\\'users\\' class=\\'w-6 h-6 text-pega-gold flex-shrink-0\\'></i>'">`;
+            }
+            
+            logoContainer.innerHTML = headerLogoHtml;
+
             content.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 h-full">
                     <i data-lucide="loader-2" class="w-10 h-10 text-pega-gold animate-spin mb-4"></i>
@@ -602,8 +680,6 @@
             modal.showModal();
 
             try {
-                // NOTA: Gviz API no se lleva bien con caché manual simple por ser JSONP/Query, 
-                // pero responde muy rápido. Lo dejamos directo por ahora.
                 const queryUrl = `https://docs.google.com/spreadsheets/d/${rosterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`;
                 const response = await fetch(queryUrl);
                 if (!response.ok) throw new Error("Equipo no encontrado");
@@ -697,7 +773,7 @@
             refreshIcons();
         }
 
-        // Resto de funciones (renderTabs, switchTab, etc.) se mantienen igual...
+        // Resto de funciones (renderTabs, switchTab, etc.)
         function renderTabs(filterType) {
             const container = document.getElementById('tabs-container');
             const filteredTabs = TABS.filter(t => t.type === filterType);
@@ -716,7 +792,6 @@
             currentTabId = id;
             const activeTab = TABS.find(t => t.id === id);
             renderTabs(activeTab.type);
-            // Si es un cambio de tab normal, NO forzamos refresh (usa caché)
             loadCurrentTab(false);
         }
 
@@ -765,7 +840,6 @@
             const recentResultsContainer = document.getElementById('recent-results');
             if (activeTab.resultsGid) { 
                 recentResultsContainer.classList.remove('hidden');
-                // Resultados también usan caché
                 loadRecentResults(forceRefresh); 
             } else {
                 recentResultsContainer.classList.add('hidden');
@@ -774,7 +848,6 @@
             const csvUrl = `${BASE_SHEET_URL}?gid=${activeTab.gid}&single=true&output=csv`;
 
             try {
-                // USA LA FUNCIÓN DE CACHÉ
                 let text = await fetchWithCache(csvUrl, forceRefresh);
                 let rows = parseCSV(text);
                 
@@ -786,9 +859,22 @@
                     if (activeTab.maxRows) rows = rows.slice(0, activeTab.maxRows);
                     
                     const cleanRows = rows.filter(r => {
-                        const teamName = r[1] ? r[1].trim() : "";
-                        const pos = r[0] ? r[0].trim() : "";
-                        return r.length > 1 && pos !== "" && !pos.toUpperCase().includes("POS") && !teamName.toUpperCase().includes("EQUIPO") && teamName !== "-" && teamName !== ""; 
+                        let teamName = r[2] ? r[2].trim() : ""; 
+                        let pos = r[0] ? r[0].trim() : "";
+                        return r.length > 1 && pos !== "" && !pos.toUpperCase().includes("POS") && !teamName.toUpperCase().includes("EQUIPO") && teamName !== "-" && teamName !== "" && teamName !== "FOTO"; 
+                    }).map(r => {
+                        return [
+                            r[0], // 0: POS
+                            r[2], // 1: EQUIPO
+                            r[3], // 2: JJ
+                            r[4], // 3: JG
+                            r[5], // 4: JE
+                            r[6], // 5: JP
+                            r[7], // 6: CF
+                            r[8], // 7: CC
+                            r[9], // 8: DIF
+                            r[1]  // 9: FOTO (Link)
+                        ];
                     });
 
                     globalData = cleanRows;
@@ -796,7 +882,7 @@
                     loadedTeams = cleanRows.map(r => r[1]); 
                     updateUploadOptions();
                 }
-                
+
                 if(forceRefresh) showToast("Datos actualizados", "success");
 
             } catch (error) {
@@ -822,10 +908,10 @@
 
                 const csvUrl = `${BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`;
 
-                // USA LA FUNCIÓN DE CACHÉ
                 let text = await fetchWithCache(csvUrl, forceRefresh);
                 let rows = parseCSV(text);
-                const validMatches = rows.filter(r => r[0] && r[0].trim() !== ""); 
+                
+                const validMatches = rows.filter(r => r[0] && r[0].trim() !== "");
                 const last5 = validMatches.slice(-5).reverse(); 
 
                 let html = '';
@@ -862,10 +948,9 @@
             }
         }
 
-        function parseCSV(text) { return text.split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, ''))); }
+        function parseCSV(text) { return text.split('\n').map(l => l.split(',').map(c => c ? c.trim().replace(/^"|"$/g, '') : '')); }
 
         async function preloadLeaders() {
-            // Precarga también usa caché, pero silencioso (sin refresh)
             console.log("Cargando líderes en segundo plano...");
             const csvUrl = `${BASE_SHEET_URL}?gid=0&single=true&output=csv`;
             try {
@@ -941,9 +1026,8 @@
         // --- RENDERIZADO TABLA (COMPACTA) ---
         function renderStandings(data) {
             const container = document.getElementById('data-container');
-            const headers = ['POS', 'EQUIPO', 'JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'];
+            let headers = ['POS', 'LOGO', 'EQUIPO', 'JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'];
             
-            // TABLA ÚNICA RESPONSIVA (AJUSTADA PARA CELULAR COMPACTO)
             let html = `
                 <div class="mlb-card rounded-xl overflow-hidden shadow-2xl">
                     <div class="overflow-x-auto custom-scrollbar">
@@ -968,36 +1052,45 @@
                                     if(pos==3) { posBadge='bronze-gradient text-white'; }
                                     
                                     const get = i => row[i] || '-';
+                                    const teamName = get(1);
                                     
-                                    // AJUSTES: Todo blanco excepto JG (Verde)
+                                    // Procesar LOGO
+                                    let logoHtml = createAvatarHtml(teamName); 
+                                    const rawLogoUrl = row[9]; // Índice de FOTO (9)
+                                    
+                                    if (rawLogoUrl && rawLogoUrl.length > 5 && rawLogoUrl !== '#N/A' && !rawLogoUrl.includes(" ")) {
+                                        let finalUrl = rawLogoUrl;
+                                        const drivePattern = /(?:id=|d\/)([a-zA-Z0-9_-]+)/;
+                                        const match = rawLogoUrl.match(drivePattern);
+                                        
+                                        if (match && match[1]) {
+                                            finalUrl = `https://lh3.googleusercontent.com/d/${match[1]}`;
+                                        }
+                                        
+                                        // Imagen real sin recorte circular
+                                        logoHtml = `<img src="${finalUrl}" class="w-10 h-10 md:w-16 md:h-16 object-contain mx-auto" referrerpolicy="no-referrer" onerror="handleImageError(this, '${teamName.replace(/'/g, "\\'")}')">`;
+                                    }
+
                                     return `<tr class="${rowClass}">
                                         <td class="px-0.5 py-1 md:px-4 md:py-4"><span class="inline-flex w-4 h-4 md:w-8 md:h-8 rounded items-center justify-center text-[9px] md:text-sm font-black ${posBadge}">${pos}</span></td>
                                         
+                                        <!-- Columna LOGO Separada -->
+                                        <td class="px-0.5 py-1 md:px-4 md:py-4 text-center">
+                                            ${logoHtml}
+                                        </td>
+
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-left">
-                                            <div class="font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1 whitespace-normal break-words">
-                                                ${get(1)}
+                                            <div onclick="openTeamForm('${teamName.replace(/'/g, "\\'")}')" class="cursor-pointer hover:text-pega-gold transition-colors font-[Teko] font-bold text-white text-sm md:text-3xl tracking-wide uppercase truncate max-w-[100px] md:max-w-none leading-none pl-1 whitespace-normal break-words" title="Clic para subir foto">
+                                                ${teamName}
                                             </div>
                                         </td>
                                         
-                                        <!-- JJ (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(2)}</td>
-                                        
-                                        <!-- JG (Verde - Único color) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-green-400">${get(3)}</td>
-                                        
-                                        <!-- JE (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(4)}</td>
-                                        
-                                        <!-- JP (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl font-bold text-white">${get(5)}</td>
-                                        
-                                        <!-- CF (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(6)}</td>
-                                        
-                                        <!-- CC (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center font-[Teko] text-sm md:text-3xl text-white">${get(7)}</td>
-                                        
-                                        <!-- DIF (Blanco) -->
                                         <td class="px-0.5 py-1 md:px-4 md:py-4 text-center"><span class="font-[Teko] font-black text-white text-sm md:text-3xl tracking-widest bg-white/5 rounded px-1 md:px-2">${get(8)}</span></td>
                                     </tr>`;
                                 }).join('')}
@@ -1009,7 +1102,7 @@
             container.innerHTML = html;
         }
 
-        // --- ANÁLISIS ESTADÍSTICO (SIN IA EXTERNA) ---
+        // ... resto de funciones (generateStaticAnalysis, etc.) se mantienen igual ...
         function generateStaticAnalysis() {
             const btn = document.getElementById('btn-analyze');
             const resultContainer = document.getElementById('analysis-result');
