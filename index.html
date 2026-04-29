@@ -239,7 +239,7 @@
                 <div id="teamStatsContent" class="h-full">
                     <div class="flex flex-col items-center justify-center h-full py-12">
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        <p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO RESULTADOS...</p>
+                        <p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO DATOS...</p>
                     </div>
                 </div>
             </div>
@@ -277,16 +277,16 @@
     <script>
         window.BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
         window.BASE_RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR46Kv8lY9vPth9ztaF8l1sruX8wgNBTzvBIsl1i0c2bK0MI_PiLdaU1sKrTQOE3yGuEeY5owNK43gZ/pub";
-        window.CACHE_VERSION = "v6.1_modal_restored";
+        window.CACHE_VERSION = "v6.5_full_restore";
         window.CACHE_DURATION = 60 * 60 * 1000; 
 
         window.TABS = [
-            { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12, rosterId: '1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ', resultsGid: '0' }, 
-            { id: 'grupo-a', name: 'GRUPO A-', gid: '536702171', type: 'standing', maxRows: 12, rosterId: '11y4uBwGd-8UTg03dDKLhPuwM_isVNic6nB-OY_NHDak', resultsGid: '1166409157' },
-            { id: 'grupo-a-plus', name: 'GRUPO A+', gid: '1046265940', type: 'standing', maxRows: 12, rosterId: '1cDhovF6tX-l09J6rNnG0jpTyKLGbYhmkuo2Of7o10R8', resultsGid: '570252591' },
-            { id: 'grupo-a-4plus', name: 'GRUPO A++++', gid: '15007088', type: 'standing', maxRows: 12, rosterId: '1TEv0ihmQSwVUsu00V-vXjMFoN-A5appvUx8KcRxsB1w', resultsGid: '1030293845' },
+            { id: 'super-a', name: 'SUPER A-', gid: '230992862', type: 'standing', maxRows: 12, rosterId: '1kqc5VHrgPPg5sj-_02taaUlVYMpXovKZou_u1FvgTpQ', resultsGid: '0', hidden: true }, 
+            { id: 'grupo-a', name: 'MENOR', gid: '536702171', type: 'standing', maxRows: 12, rosterId: '11y4uBwGd-8UTg03dDKLhPuwM_isVNic6nB-OY_NHDak', resultsGid: '1166409157' },
+            { id: 'grupo-a-plus', name: 'MAYOR', gid: '1046265940', type: 'standing', maxRows: 12, rosterId: '1cDhovF6tX-l09J6rNnG0jpTyKLGbYhmkuo2Of7o10R8', resultsGid: '570252591' },
+            { id: 'grupo-a-4plus', name: 'PLUS', gid: '15007088', type: 'standing', maxRows: 12, rosterId: '1TEv0ihmQSwVUsu00V-vXjMFoN-A5appvUx8KcRxsB1w', resultsGid: '1030293845' },
             { id: 'grupo-b', name: 'GRUPO B', gid: '806756321', type: 'standing', maxRows: 12, rosterId: '1vVa8fkBn6fdw5Ym-Lu9-uEDxITpa1eeDi67NwL-Ycu0', resultsGid: '467270312' },
-            { id: 'grupo-c', name: 'GRUPO C', gid: '575223888', type: 'standing', maxRows: 12, rosterId: '1ZW2IDE3DnBejB8fB3RGtqlszLauGaoSNDq4rBJ2HbyI', resultsGid: '537677949' },
+            { id: 'grupo-c', name: 'BOLA DURA', gid: '575223888', type: 'standing', maxRows: 12, rosterId: '1ZW2IDE3DnBejB8fB3RGtqlszLauGaoSNDq4rBJ2HbyI', resultsGid: '537677949' },
             { id: 'grupo-fds-a', name: 'FDS A', gid: '2031015446', type: 'standing', maxRows: 12, rosterId: '1SIDkL-yd06mIBv0Tf8zj149vUsJXZHrvaFXn0pWaPf4', resultsGid: '200576593' },
             { id: 'grupo-fds-b', name: 'FDS B', gid: '803338116', type: 'standing', maxRows: 12, rosterId: '1aXWSIIU6CdDzzjdXYt5nPz6mEfvce6NE1lxkf7-Do4w', resultsGid: '1914304897' },
             { id: 'grupo-fds-c', name: 'FDS C', gid: '1068943726', type: 'standing', maxRows: 12, rosterId: '1cTQJMjlYzNaOi860nduO8jXo-7YjR_3mA0WdyEmq-Bk', resultsGid: '1135898381' },
@@ -295,7 +295,7 @@
             { id: 'leader-jg', name: 'JG', gid: '0', type: 'leader', colStart: 8, nameCol: 8, teamCol: 9, statCol: 10, groupCol: 11, icon: 'trophy', color: 'from-yellow-500 to-yellow-700', label: 'JG' }
         ];
 
-        window.DISPLAY_ORDER_PRIORITY = [ "SUPER A-", "GRUPO SUPER A-", "A-", "GRUPO A-", "A+", "GRUPO A+", "A++++", "A+++", "GRUPO A++++", "GRUPO A+++", "B", "GRUPO B", "C", "GRUPO C", "FDS A", "GRUPO FDS A", "FDS B", "GRUPO FDS B", "FDS C", "GRUPO FDS C" ];
+        window.DISPLAY_ORDER_PRIORITY = [ "SUPER A-", "MENOR", "GRUPO A-", "MAYOR", "GRUPO A+", "PLUS", "GRUPO A++++", "GRUPO B", "BOLA DURA", "GRUPO C", "FDS A", "FDS B", "FDS C" ];
 
         window.currentTabId = null;
         window.globalData = [];
@@ -364,7 +364,7 @@
         window.parseCSV = function(text) { return text.split('\n').map(l => l.split(',').map(c => c ? c.trim().replace(/^"|"$/g, '') : '')); };
 
         window.buildGlobalRegistry = async function() {
-            const groups = window.TABS.filter(t => t.type === 'standing');
+            const groups = window.TABS.filter(t => t.type === 'standing' && !t.hidden);
             for (let group of groups) {
                 try {
                     let text = await window.fetchWithCache(`${window.BASE_SHEET_URL}?gid=${group.gid}&single=true&output=csv`);
@@ -406,11 +406,11 @@
             document.getElementById('tabs-navigation').classList.add('hidden'); document.getElementById('data-container').classList.add('hidden');
             document.getElementById('analysis-wrapper').classList.add('hidden'); document.getElementById('recent-results').classList.add('hidden'); document.getElementById('concentrados-section').classList.add('hidden');
             if (type === 'concentrados') { window.renderConcentradosMenu(); document.getElementById('concentrados-section').classList.remove('hidden'); } 
-            else { document.getElementById('tabs-navigation').classList.remove('hidden'); document.getElementById('data-container').classList.remove('hidden'); if (type === 'standing') { document.getElementById('analysis-wrapper').classList.remove('hidden'); } window.renderTabs(type); const firstTab = window.TABS.find(t => t.type === type); if (firstTab) window.switchTab(firstTab.id); }
+            else { document.getElementById('tabs-navigation').classList.remove('hidden'); document.getElementById('data-container').classList.remove('hidden'); if (type === 'standing') { document.getElementById('analysis-wrapper').classList.remove('hidden'); } window.renderTabs(type); const firstTab = window.TABS.find(t => t.type === type && !t.hidden); if (firstTab) window.switchTab(firstTab.id); }
         };
 
         window.renderConcentradosMenu = function() {
-            document.getElementById('concentrados-grid').innerHTML = window.TABS.filter(t => t.type === 'standing').map(group => `
+            document.getElementById('concentrados-grid').innerHTML = window.TABS.filter(t => t.type === 'standing' && !t.hidden).map(group => `
                 <div class="mlb-card rounded-xl overflow-hidden border border-white/10 group">
                     <button onclick="window.toggleGroupDropdown('${group.id}')" class="w-full text-left p-4 bg-gradient-to-r from-pega-navy to-[#0f172a] hover:from-[#1e3a8a] hover:to-pega-navy transition flex justify-between items-center">
                         <span class="font-sport text-xl text-white uppercase tracking-wider">${group.name}</span>
@@ -449,6 +449,111 @@
             window.open(baseUrl + encodeURIComponent(playerName), '_blank');
         };
 
+        window.openTeamResults = async function(teamName, resultsGid, logoUrl = "") {
+            const modal = document.getElementById('teamStatsModal'); const content = document.getElementById('teamStatsContent');
+            document.getElementById('modalTeamNameText').textContent = teamName;
+            const uploadBtn = document.getElementById('btn-upload-photo'); uploadBtn.onclick = () => window.openTeamForm(teamName); uploadBtn.classList.remove('hidden');
+            const finalUrl = window.formatDriveUrl(logoUrl);
+            document.getElementById('modalTeamLogoContainer').innerHTML = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 md:w-10 md:h-10 object-contain mr-2" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' class=\\'w-6 h-6 text-pega-gold flex-shrink-0 mr-2\\'><path d=\\'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\\'/><circle cx=\\'9\\' cy=\\'7\\' r=\\'4\\'/><path d=\\'M22 21v-2a4 4 0 0 0-3-3.87\\'/><path d=\\'M16 3.13a4 4 0 0 1 0 7.75\\'/></svg>'">` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-pega-gold flex-shrink-0 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12 h-full"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO RESULTADOS...</p></div>`;
+            window.refreshIcons(); modal.showModal();
+            try {
+                if (!resultsGid || resultsGid === '0') throw new Error("Sin gid");
+                const csvUrl = `${window.BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`;
+                let text = await window.fetchWithCache(csvUrl);
+                let rows = window.parseCSV(text);
+                
+                let teamMatches = rows.filter(r => r.length >= 4 && r[0] && r[3] && (r[0].toUpperCase().trim() === teamName.toUpperCase().trim() || r[3].toUpperCase().trim() === teamName.toUpperCase().trim()));
+
+                if (teamMatches.length > 0) {
+                    content.innerHTML = `<div class="p-2 md:p-4 max-w-3xl mx-auto">` + teamMatches.map(match => {
+                        const teamA = match[0].trim();
+                        const scoreA = match[1];
+                        const scoreB = match[2];
+                        const teamB = match[3].trim();
+
+                        const infoA = window.globalTeamRegistry[teamA.toUpperCase()] || {};
+                        const infoB = window.globalTeamRegistry[teamB.toUpperCase()] || {};
+                        const urlA = window.formatDriveUrl(infoA.logo);
+                        const urlB = window.formatDriveUrl(infoB.logo);
+
+                        const logoA = urlA ? `<img src="${urlA}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamA.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamA, "w-10 h-10 md:w-14 md:h-14 mx-auto");
+                        const logoB = urlB ? `<img src="${urlB}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamB.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamB, "w-10 h-10 md:w-14 md:h-14 mx-auto");
+
+                        let isTeamA = teamA.toUpperCase() === teamName.toUpperCase();
+                        let myScore = isTeamA ? parseInt(scoreA) : parseInt(scoreB);
+                        let oppScore = isTeamA ? parseInt(scoreB) : parseInt(scoreA);
+                        let resultBadge = "";
+                        if (!isNaN(myScore) && !isNaN(oppScore)) {
+                            if (myScore > oppScore) resultBadge = `<span class="bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">VICTORIA</span>`;
+                            else if (myScore < oppScore) resultBadge = `<span class="bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">DERROTA</span>`;
+                            else resultBadge = `<span class="bg-slate-500 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">EMPATE</span>`;
+                        }
+
+                        return `
+                        <div class="mlb-card bg-[#0f172a]/95 p-4 rounded-xl border border-white/10 shadow-lg mb-4 hover:border-pega-gold/50 transition duration-300 relative overflow-hidden">
+                            <div class="flex items-center justify-between gap-1 relative z-10">
+                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
+                                    ${logoA}
+                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamA}">${teamA}</span>
+                                </div>
+                                <div class="flex-shrink-0 flex flex-col items-center justify-center px-1">
+                                    <div class="bg-black/60 rounded-lg py-1.5 px-3 md:py-2 md:px-5 border border-white/10 shadow-inner whitespace-nowrap">
+                                        <span class="font-sport text-2xl md:text-4xl text-white tracking-wider leading-none">${scoreA} - ${scoreB}</span>
+                                    </div>
+                                    <div class="mt-2">${resultBadge}</div>
+                                </div>
+                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
+                                    ${logoB}
+                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamB}">${teamB}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).reverse().join('') + `</div>`;
+                } else {
+                    content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-4 text-slate-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><p>Aún no hay resultados registrados para este equipo.</p></div>`;
+                }
+            } catch (error) {
+                content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos resultados para <strong>"${teamName}"</strong>.</p></div>`;
+            }
+            window.refreshIcons();
+        };
+
+        window.openTeamRoster = async function(teamName, rosterSheetId, logoUrl = "") {
+            const modal = document.getElementById('teamStatsModal'); const content = document.getElementById('teamStatsContent');
+            document.getElementById('modalTeamNameText').textContent = teamName;
+            const uploadBtn = document.getElementById('btn-upload-photo'); uploadBtn.onclick = () => window.openTeamForm(teamName); uploadBtn.classList.remove('hidden');
+            const finalUrl = window.formatDriveUrl(logoUrl);
+            document.getElementById('modalTeamLogoContainer').innerHTML = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 md:w-10 md:h-10 object-contain mr-2" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' class=\\'w-6 h-6 text-pega-gold flex-shrink-0 mr-2\\'><path d=\\'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\\'/><circle cx=\\'9\\' cy=\\'7\\' r=\\'4\\'/><path d=\\'M22 21v-2a4 4 0 0 0-3-3.87\\'/><path d=\\'M16 3.13a4 4 0 0 1 0 7.75\\'/></svg>'">` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-pega-gold flex-shrink-0 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
+            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12 h-full"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ROSTER...</p></div>`;
+            window.refreshIcons(); modal.showModal();
+            try {
+                const response = await fetch(`https://docs.google.com/spreadsheets/d/${rosterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`);
+                if (!response.ok) throw new Error("Equipo no encontrado");
+                const txt = await response.text();
+                const json = JSON.parse(txt.substring(47).slice(0, -2));
+                let cols = json.table.cols.map(c => c.label || c.id).map(c => c.replace(/.* J\.$/, 'J.')); const gamesColIndex = cols.findIndex(c => c.trim() === 'J.' || c.trim() === 'J');
+                let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : '')).filter(r => { const name = r[0] ? r[0].toString().trim() : ""; return name !== "" && name !== "0" && name !== "-" && name !== "JUGADOR" && name !== "JUGADORES"; });
+                if (rows.length > 0) {
+                    content.innerHTML = `<div class="overflow-x-auto custom-scrollbar rounded-none md:rounded-lg border-t border-b md:border border-white/10 h-full"><table class="w-full text-xs md:text-sm text-left whitespace-nowrap relative border-collapse"><thead class="bg-[#0f172a] text-pega-gold font-bold uppercase sticky top-0 z-10 shadow-md"><tr>${cols.map(c => `<th class="px-2 py-3 text-xs md:text-sm tracking-wider bg-[#0f172a] border-b border-pega-gold/30">${c}</th>`).join('')}</tr></thead><tbody class="divide-y divide-white/5 bg-[#0f172a]">
+                                    ${rows.map((row, i) => {
+                                        const isEligible = (gamesColIndex !== -1 && parseInt(row[gamesColIndex]) >= 4);
+                                        const pName = row[0] ? row[0].toString() : '';
+                                        let playerStats = {}; cols.forEach((c, idx) => { playerStats[c.toUpperCase().trim()] = row[idx] || '0'; });
+                                        const statsJson = encodeURIComponent(JSON.stringify(playerStats));
+                                        
+                                        return `<tr class="transition cursor-pointer ${isEligible ? 'bg-green-900/20 text-green-100 hover:bg-green-900/40' : `hover:bg-white/10 ${i%2===0 ? 'bg-white/[0.02]' : ''}`}" onclick="window.showPlayerCard('${pName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${logoUrl}', '${statsJson}')" title="Ver Tarjeta de Jugador">
+                                            ${row.map((cell, idx) => {
+                                                let displayCell = cell; const colName = cols[idx] ? cols[idx].toUpperCase() : '';
+                                                if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) { displayCell = parseFloat(cell) < 1 ? parseFloat(cell).toFixed(3).substring(1) : parseFloat(cell).toFixed(3); }
+                                                return `<td class="px-2 py-2 text-[10px] md:text-xs ${idx === 0 ? "font-bold text-white min-w-[150px] sticky left-0 z-10 bg-inherit border-r border-white/10" : "font-mono text-slate-300 text-center min-w-[40px]"}">${displayCell}</td>`;
+                                            }).join('')}</tr>`
+                                    }).join('')}</tbody></table></div>
+                                    <div class="mt-3 pb-2 text-center text-[10px] md:text-xs text-pega-gold animate-pulse font-bold tracking-widest uppercase"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Toca un jugador para ver su tarjeta</div>`;
+                } else { content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-2 text-slate-600"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><p>No hay jugadores registrados.</p></div>`; }
+            } catch (error) { content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos la hoja de roster para <strong>"${teamName}"</strong>.</p></div>`; } window.refreshIcons();
+        };
+
         window.showPlayerCard = function(playerName, teamName, logoUrl, statsJsonStr) {
             const stats = JSON.parse(decodeURIComponent(statsJsonStr));
             const modal = document.getElementById('playerCardModal');
@@ -459,7 +564,10 @@
 
             const getStat = (keys) => {
                 for (let k of keys) {
-                    let foundKey = Object.keys(stats).find(key => key === k || key.includes(k));
+                    let foundKey = Object.keys(stats).find(key => {
+                        const cleanKey = key.replace(/[^A-Z0-9]/gi, '');
+                        return cleanKey === k;
+                    });
                     if (foundKey && stats[foundKey] !== '') return stats[foundKey];
                 }
                 return '0';
@@ -597,113 +705,8 @@
             }
         };
 
-        window.openTeamResults = async function(teamName, resultsGid, logoUrl = "") {
-            const modal = document.getElementById('teamStatsModal'); const content = document.getElementById('teamStatsContent');
-            document.getElementById('modalTeamNameText').textContent = teamName;
-            const uploadBtn = document.getElementById('btn-upload-photo'); uploadBtn.onclick = () => window.openTeamForm(teamName); uploadBtn.classList.remove('hidden');
-            const finalUrl = window.formatDriveUrl(logoUrl);
-            document.getElementById('modalTeamLogoContainer').innerHTML = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 md:w-10 md:h-10 object-contain mr-2" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' class=\\'w-6 h-6 text-pega-gold flex-shrink-0 mr-2\\'><path d=\\'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\\'/><circle cx=\\'9\\' cy=\\'7\\' r=\\'4\\'/><path d=\\'M22 21v-2a4 4 0 0 0-3-3.87\\'/><path d=\\'M16 3.13a4 4 0 0 1 0 7.75\\'/></svg>'">` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-pega-gold flex-shrink-0 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12 h-full"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO RESULTADOS...</p></div>`;
-            window.refreshIcons(); modal.showModal();
-            try {
-                if (!resultsGid || resultsGid === '0') throw new Error("Sin gid");
-                const csvUrl = `${window.BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`;
-                let text = await window.fetchWithCache(csvUrl);
-                let rows = window.parseCSV(text);
-                
-                let teamMatches = rows.filter(r => r.length >= 4 && r[0] && r[3] && (r[0].toUpperCase().trim() === teamName.toUpperCase().trim() || r[3].toUpperCase().trim() === teamName.toUpperCase().trim()));
-
-                if (teamMatches.length > 0) {
-                    content.innerHTML = `<div class="p-2 md:p-4 max-w-3xl mx-auto">` + teamMatches.map(match => {
-                        const teamA = match[0].trim();
-                        const scoreA = match[1];
-                        const scoreB = match[2];
-                        const teamB = match[3].trim();
-
-                        const infoA = window.globalTeamRegistry[teamA.toUpperCase()] || {};
-                        const infoB = window.globalTeamRegistry[teamB.toUpperCase()] || {};
-                        const urlA = window.formatDriveUrl(infoA.logo);
-                        const urlB = window.formatDriveUrl(infoB.logo);
-
-                        const logoA = urlA ? `<img src="${urlA}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamA.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamA, "w-10 h-10 md:w-14 md:h-14 mx-auto");
-                        const logoB = urlB ? `<img src="${urlB}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamB.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamB, "w-10 h-10 md:w-14 md:h-14 mx-auto");
-
-                        let isTeamA = teamA.toUpperCase() === teamName.toUpperCase();
-                        let myScore = isTeamA ? parseInt(scoreA) : parseInt(scoreB);
-                        let oppScore = isTeamA ? parseInt(scoreB) : parseInt(scoreA);
-                        let resultBadge = "";
-                        if (!isNaN(myScore) && !isNaN(oppScore)) {
-                            if (myScore > oppScore) resultBadge = `<span class="bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">VICTORIA</span>`;
-                            else if (myScore < oppScore) resultBadge = `<span class="bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">DERROTA</span>`;
-                            else resultBadge = `<span class="bg-slate-500 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">EMPATE</span>`;
-                        }
-
-                        return `
-                        <div class="mlb-card bg-[#0f172a]/95 p-4 rounded-xl border border-white/10 shadow-lg mb-4 hover:border-pega-gold/50 transition duration-300 relative overflow-hidden">
-                            <div class="flex items-center justify-between gap-1 relative z-10">
-                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
-                                    ${logoA}
-                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamA}">${teamA}</span>
-                                </div>
-                                <div class="flex-shrink-0 flex flex-col items-center justify-center px-1">
-                                    <div class="bg-black/60 rounded-lg py-1.5 px-3 md:py-2 md:px-5 border border-white/10 shadow-inner whitespace-nowrap">
-                                        <span class="font-sport text-2xl md:text-4xl text-white tracking-wider leading-none">${scoreA} - ${scoreB}</span>
-                                    </div>
-                                    <div class="mt-2">${resultBadge}</div>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
-                                    ${logoB}
-                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamB}">${teamB}</span>
-                                </div>
-                            </div>
-                        </div>`;
-                    }).reverse().join('') + `</div>`;
-                } else {
-                    content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-4 text-slate-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><p>Aún no hay resultados registrados para este equipo.</p></div>`;
-                }
-            } catch (error) {
-                content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos resultados para <strong>"${teamName}"</strong>.</p></div>`;
-            }
-            window.refreshIcons();
-        };
-
-        window.openTeamRoster = async function(teamName, rosterSheetId, logoUrl = "") {
-            const modal = document.getElementById('teamStatsModal'); const content = document.getElementById('teamStatsContent');
-            document.getElementById('modalTeamNameText').textContent = teamName;
-            const uploadBtn = document.getElementById('btn-upload-photo'); uploadBtn.onclick = () => window.openTeamForm(teamName); uploadBtn.classList.remove('hidden');
-            const finalUrl = window.formatDriveUrl(logoUrl);
-            document.getElementById('modalTeamLogoContainer').innerHTML = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 md:w-10 md:h-10 object-contain mr-2" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' class=\\'w-6 h-6 text-pega-gold flex-shrink-0 mr-2\\'><path d=\\'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\\'/><circle cx=\\'9\\' cy=\\'7\\' r=\\'4\\'/><path d=\\'M22 21v-2a4 4 0 0 0-3-3.87\\'/><path d=\\'M16 3.13a4 4 0 0 1 0 7.75\\'/></svg>'">` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 text-pega-gold flex-shrink-0 mr-2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`;
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12 h-full"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ROSTER...</p></div>`;
-            window.refreshIcons(); modal.showModal();
-            try {
-                const response = await fetch(`https://docs.google.com/spreadsheets/d/${rosterSheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamName)}`);
-                if (!response.ok) throw new Error("Equipo no encontrado");
-                const txt = await response.text();
-                const json = JSON.parse(txt.substring(47).slice(0, -2));
-                let cols = json.table.cols.map(c => c.label || c.id).map(c => c.replace(/.* J\.$/, 'J.')); const gamesColIndex = cols.findIndex(c => c.trim() === 'J.' || c.trim() === 'J');
-                let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : '')).filter(r => { const name = r[0] ? r[0].toString().trim() : ""; return name !== "" && name !== "0" && name !== "-" && name !== "JUGADOR" && name !== "JUGADORES"; });
-                if (rows.length > 0) {
-                    content.innerHTML = `<div class="overflow-x-auto custom-scrollbar rounded-none md:rounded-lg border-t border-b md:border border-white/10 h-full"><table class="w-full text-xs md:text-sm text-left whitespace-nowrap relative border-collapse"><thead class="bg-[#0f172a] text-pega-gold font-bold uppercase sticky top-0 z-10 shadow-md"><tr>${cols.map(c => `<th class="px-2 py-3 text-xs md:text-sm tracking-wider bg-[#0f172a] border-b border-pega-gold/30">${c}</th>`).join('')}</tr></thead><tbody class="divide-y divide-white/5 bg-[#0f172a]">
-                                    ${rows.map((row, i) => {
-                                        const isEligible = (gamesColIndex !== -1 && parseInt(row[gamesColIndex]) >= 4);
-                                        const pName = row[0] ? row[0].toString() : '';
-                                        let playerStats = {}; cols.forEach((c, idx) => { playerStats[c.toUpperCase().trim()] = row[idx] || '0'; });
-                                        const statsJson = encodeURIComponent(JSON.stringify(playerStats));
-                                        
-                                        return `<tr class="transition cursor-pointer ${isEligible ? 'bg-green-900/20 text-green-100 hover:bg-green-900/40' : `hover:bg-white/10 ${i%2===0 ? 'bg-white/[0.02]' : ''}`}" onclick="window.showPlayerCard('${pName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${logoUrl}', '${statsJson}')" title="Ver Tarjeta de Jugador">
-                                            ${row.map((cell, idx) => {
-                                                let displayCell = cell; const colName = cols[idx] ? cols[idx].toUpperCase() : '';
-                                                if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) { displayCell = parseFloat(cell) < 1 ? parseFloat(cell).toFixed(3).substring(1) : parseFloat(cell).toFixed(3); }
-                                                return `<td class="px-2 py-2 text-[10px] md:text-xs ${idx === 0 ? "font-bold text-white min-w-[150px] sticky left-0 z-10 bg-inherit border-r border-white/10" : "font-mono text-slate-300 text-center min-w-[40px]"}">${displayCell}</td>`;
-                                            }).join('')}</tr>`
-                                    }).join('')}</tbody></table></div>
-                                    <div class="mt-3 pb-2 text-center text-[10px] md:text-xs text-pega-gold animate-pulse font-bold tracking-widest uppercase"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Toca un jugador para ver su tarjeta</div>`;
-                } else { content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-2 text-slate-600"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></svg><p>No hay jugadores registrados.</p></div>`; }
-            } catch (error) { content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos la hoja de roster para <strong>"${teamName}"</strong>.</p></div>`; } window.refreshIcons();
-        };
-
         window.renderTabs = function(filterType) {
-            document.getElementById('tabs-container').innerHTML = window.TABS.filter(t => t.type === filterType).map(tab => {
+            document.getElementById('tabs-container').innerHTML = window.TABS.filter(t => t.type === filterType && !t.hidden).map(tab => {
                 const isLeader = tab.type === 'leader';
                 return `<button onclick="window.switchTab('${tab.id}')" class="px-3 py-2 md:px-5 md:py-2.5 rounded-lg font-bold text-xs md:text-sm tracking-wide transition-all transform hover:-translate-y-1 hover:shadow-lg ${window.currentTabId === tab.id ? 'tab-active' : 'tab-inactive'} ${isLeader ? 'border-pega-gold/50' : ''}">${isLeader ? `<span class="flex items-center gap-1"><i data-lucide="${tab.icon}" class="w-3 h-3"></i> ${tab.name}</span>` : tab.name}</button>`
             }).join(''); window.refreshIcons();
@@ -797,7 +800,7 @@
         window.processLeaderData = function(rows, config) {
             let groups = {}; let currentGroupName = "GENERAL";
             rows.forEach((r, index) => {
-                let groupIndex = Math.floor(index / 5); const fallbackNames = ["SUPER A-", "GRUPO A-", "GRUPO A+", "GRUPO A++++", "GRUPO B", "GRUPO C", "FDS A", "FDS B", "FDS C"];
+                let groupIndex = Math.floor(index / 5); const fallbackNames = ["SUPER A-", "MENOR", "MAYOR", "PLUS", "GRUPO B", "BOLA DURA", "FDS A", "FDS B", "FDS C"];
                 if (groupIndex < fallbackNames.length) currentGroupName = fallbackNames[groupIndex];
                 if (r[config.groupCol] && r[config.groupCol].trim() !== "") currentGroupName = r[config.groupCol].trim().toUpperCase();
                 let p = { rank: 0, name: r[config.nameCol] || '', team: r[config.teamCol] || '', stat: r[config.statCol] || '0' };
