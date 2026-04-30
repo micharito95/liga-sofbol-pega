@@ -277,7 +277,11 @@
     <script>
         window.BASE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGTo3bXEvL_J54VjF26ilMUnTDPLXo0wkDTqdJ86I75WfDUyCu4lfeMupwOqL3KnJsAz4QPAy7oBw0/pub";
         window.BASE_RESULTS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR46Kv8lY9vPth9ztaF8l1sruX8wgNBTzvBIsl1i0c2bK0MI_PiLdaU1sKrTQOE3yGuEeY5owNK43gZ/pub";
-        window.CACHE_VERSION = "v6.5_full_restore";
+        
+        // NUEVA URL: Base de datos de Fotos de Jugadores (Adaptada para CSV desde GitHub)
+        window.PLAYER_PHOTOS_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR1akXLy5f22YwFoSkbxBBOAbfqiiRivcNsvIEV2_d85e-pYEFbN1dit4TvX9mBy1h7eJia7pHHibQe/pub?output=csv";
+        
+        window.CACHE_VERSION = "v9.2_photo_triple_key";
         window.CACHE_DURATION = 60 * 60 * 1000; 
 
         window.TABS = [
@@ -302,6 +306,7 @@
         window.loadedTeams = [];
         window.teamLeadersInfo = {}; 
         window.globalTeamRegistry = {};
+        window.globalPlayerPhotos = {}; // Registro global de fotos
         window._activeFetches = {}; 
 
         window.refreshIcons = function() {
@@ -331,18 +336,20 @@
                     } catch (e) {} 
                 } 
             }
-            if (window._activeFetches[url]) return await window._activeFetches[url];
             
-            const fetchPromise = window.fetchWithProxy(url).then(data => {
+            const finalFetchUrl = forceRefresh ? (url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now()) : url;
+            if (window._activeFetches[finalFetchUrl]) return await window._activeFetches[finalFetchUrl];
+            
+            const fetchPromise = window.fetchWithProxy(finalFetchUrl).then(data => {
                 if (data && data.length > 50) window.setSafeCache(cacheKey, JSON.stringify({ timestamp: Date.now(), data: data })); 
-                delete window._activeFetches[url];
+                delete window._activeFetches[finalFetchUrl];
                 return data;
             }).catch(e => {
-                delete window._activeFetches[url];
+                delete window._activeFetches[finalFetchUrl];
                 throw e;
             });
             
-            window._activeFetches[url] = fetchPromise;
+            window._activeFetches[finalFetchUrl] = fetchPromise;
             return await fetchPromise;
         };
 
@@ -362,6 +369,29 @@
         window.handleImageError = function(element, name) { element.onerror = null; element.outerHTML = window.createAvatarHtml(name, ""); };
 
         window.parseCSV = function(text) { return text.split('\n').map(l => l.split(',').map(c => c ? c.trim().replace(/^"|"$/g, '') : '')); };
+
+        // Descarga las fotos de los jugadores cruzando Grupo, Equipo y Nombre
+        window.loadPlayerPhotos = async function(forceRefresh = false) {
+            try {
+                let text = await window.fetchWithCache(window.PLAYER_PHOTOS_SHEET_URL, forceRefresh);
+                let rows = window.parseCSV(text);
+                rows.forEach(r => {
+                    let urlColIndex = r.findIndex(c => c.includes('drive.google.com'));
+                    let photoUrl = urlColIndex !== -1 ? r[urlColIndex].trim() : (r.length >= 5 ? r[4].trim() : "");
+                    
+                    if(r.length >= 4) {
+                        let group = r[1] ? r[1].trim().toUpperCase() : "";
+                        let team = r[2] ? r[2].trim().toUpperCase() : "";
+                        let player = r[3] ? r[3].trim().toUpperCase() : "";
+                        
+                        if(group && team && player && photoUrl && photoUrl !== "Archivo de Logo") {
+                            // LLAVE TRIPLE: Grupo_Equipo_Jugador
+                            window.globalPlayerPhotos[`${group}_${team}_${player}`] = photoUrl;
+                        }
+                    }
+                });
+            } catch(e) { console.log("No se pudieron cargar las fotos:", e); }
+        };
 
         window.buildGlobalRegistry = async function() {
             const groups = window.TABS.filter(t => t.type === 'standing' && !t.hidden);
@@ -390,7 +420,7 @@
             resultsDiv.innerHTML = matches.map(team => {
                 const rawUrl = team.logo; const finalUrl = window.formatDriveUrl(rawUrl);
                 let logoHtml = finalUrl ? `<img src="${finalUrl}" class="w-10 h-10 object-contain mr-3 flex-shrink-0" referrerpolicy="no-referrer" onerror="window.handleImageError(this, '${team.name.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(team.name, "mr-3 flex-shrink-0");
-                return `<button onclick="document.getElementById('searchModal').close(); window.openTeamRoster('${team.name.replace(/'/g, "\\'")}', '${team.rosterId}', '${rawUrl}')" class="w-full text-left p-3 mb-2 bg-black/40 rounded-lg hover:bg-white/10 transition border border-white/5 flex items-center group cursor-pointer">${logoHtml}<div><div class="text-white font-sport text-xl tracking-wide leading-none group-hover:text-pega-gold transition">${team.name}</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">${team.groupName}</div></div><i data-lucide="chevron-right" class="w-5 h-5 ml-auto text-slate-500 group-hover:text-pega-gold"></i></button>`;
+                return `<button onclick="document.getElementById('searchModal').close(); window.openTeamRoster('${team.name.replace(/'/g, "\\'")}', '${team.rosterId}', '${rawUrl}', '${team.groupName.replace(/'/g, "\\'")}')" class="w-full text-left p-3 mb-2 bg-black/40 rounded-lg hover:bg-white/10 transition border border-white/5 flex items-center group cursor-pointer">${logoHtml}<div><div class="text-white font-sport text-xl tracking-wide leading-none group-hover:text-pega-gold transition">${team.name}</div><div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">${team.groupName}</div></div><i data-lucide="chevron-right" class="w-5 h-5 ml-auto text-slate-500 group-hover:text-pega-gold"></i></button>`;
             }).join(''); window.refreshIcons();
         };
 
@@ -434,7 +464,7 @@
                             listEl.innerHTML = `<div class="grid grid-cols-1 divide-y divide-white/5">${teams.map(team => {
                                 const rawLogoUrl = team.logo; const finalUrl = window.formatDriveUrl(rawLogoUrl);
                                 let logoHtml = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 object-contain mr-3 flex-shrink-0" referrerpolicy="no-referrer" onerror="window.handleImageError(this, '${team.name.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(team.name, "mr-3 flex-shrink-0");
-                                return `<button onclick="window.openTeamRoster('${team.name.replace(/'/g, "\\'")}', '${groupConfig.rosterId}', '${rawLogoUrl}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center group/item">${logoHtml}<span>${team.name}</span></button>`;
+                                return `<button onclick="window.openTeamRoster('${team.name.replace(/'/g, "\\'")}', '${groupConfig.rosterId}', '${rawLogoUrl}', '${groupConfig.name.replace(/'/g, "\\'")}')" class="w-full text-left p-3 text-white text-sm font-bold uppercase tracking-wide hover:bg-white/10 transition flex items-center group/item">${logoHtml}<span>${team.name}</span></button>`;
                             }).join('')}</div>`;
                         } else { listEl.innerHTML = `<div class="p-4 text-slate-500 text-sm text-center">Sin equipos registrados</div>`; }
                     } catch (e) { listEl.innerHTML = `<div class="p-4 text-red-400 text-sm text-center">Error al cargar</div>`; }
@@ -444,9 +474,15 @@
 
         window.openTeamForm = function(teamName) { window.open("https://docs.google.com/forms/d/e/1FAIpQLSc3wt98a9Sj-E--y_WBnh7e6DZvt6bbg8SGBo_wtIfAlY5K6Q/viewform?usp=pp_url&entry.185157486=" + encodeURIComponent(teamName), '_blank'); };
 
-        window.openPlayerForm = function(playerName) {
-            const baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSc3wt98a9Sj-E--y_WBnh7e6DZvt6bbg8SGBo_wtIfAlY5K6Q/viewform?usp=pp_url&entry.185157486=";
-            window.open(baseUrl + encodeURIComponent(playerName), '_blank');
+        window.openPlayerForm = function(playerName, teamName, groupName) {
+            const formID = "1FAIpQLSf4-iypDSPFDiZRx29NHYKRFS1QRKobxsj82I-zBNmrQtYvYg"; 
+            const idGrupo = "entry.185157486"; 
+            const idEquipo = "entry.1144609741";  
+            const idJugador = "entry.420845490";   
+            const baseUrl = `https://docs.google.com/forms/d/e/${formID}/viewform?usp=pp_url`;
+            const params = `&${idGrupo}=${encodeURIComponent(groupName)}&${idEquipo}=${encodeURIComponent(teamName)}&${idJugador}=${encodeURIComponent(playerName)}`;
+            
+            window.open(baseUrl + params, '_blank');
         };
 
         window.openTeamResults = async function(teamName, resultsGid, logoUrl = "") {
@@ -467,59 +503,24 @@
 
                 if (teamMatches.length > 0) {
                     content.innerHTML = `<div class="p-2 md:p-4 max-w-3xl mx-auto">` + teamMatches.map(match => {
-                        const teamA = match[0].trim();
-                        const scoreA = match[1];
-                        const scoreB = match[2];
-                        const teamB = match[3].trim();
-
-                        const infoA = window.globalTeamRegistry[teamA.toUpperCase()] || {};
-                        const infoB = window.globalTeamRegistry[teamB.toUpperCase()] || {};
-                        const urlA = window.formatDriveUrl(infoA.logo);
-                        const urlB = window.formatDriveUrl(infoB.logo);
-
+                        const teamA = match[0].trim(); const scoreA = match[1]; const scoreB = match[2]; const teamB = match[3].trim();
+                        const infoA = window.globalTeamRegistry[teamA.toUpperCase()] || {}; const infoB = window.globalTeamRegistry[teamB.toUpperCase()] || {};
+                        const urlA = window.formatDriveUrl(infoA.logo); const urlB = window.formatDriveUrl(infoB.logo);
                         const logoA = urlA ? `<img src="${urlA}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamA.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamA, "w-10 h-10 md:w-14 md:h-14 mx-auto");
                         const logoB = urlB ? `<img src="${urlB}" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow mx-auto" onerror="window.handleImageError(this, '${teamB.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamB, "w-10 h-10 md:w-14 md:h-14 mx-auto");
-
-                        let isTeamA = teamA.toUpperCase() === teamName.toUpperCase();
-                        let myScore = isTeamA ? parseInt(scoreA) : parseInt(scoreB);
-                        let oppScore = isTeamA ? parseInt(scoreB) : parseInt(scoreA);
-                        let resultBadge = "";
+                        let isTeamA = teamA.toUpperCase() === teamName.toUpperCase(); let myScore = isTeamA ? parseInt(scoreA) : parseInt(scoreB); let oppScore = isTeamA ? parseInt(scoreB) : parseInt(scoreA); let resultBadge = "";
                         if (!isNaN(myScore) && !isNaN(oppScore)) {
                             if (myScore > oppScore) resultBadge = `<span class="bg-green-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">VICTORIA</span>`;
                             else if (myScore < oppScore) resultBadge = `<span class="bg-red-600 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">DERROTA</span>`;
                             else resultBadge = `<span class="bg-slate-500 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 rounded shadow">EMPATE</span>`;
                         }
-
-                        return `
-                        <div class="mlb-card bg-[#0f172a]/95 p-4 rounded-xl border border-white/10 shadow-lg mb-4 hover:border-pega-gold/50 transition duration-300 relative overflow-hidden">
-                            <div class="flex items-center justify-between gap-1 relative z-10">
-                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
-                                    ${logoA}
-                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamA}">${teamA}</span>
-                                </div>
-                                <div class="flex-shrink-0 flex flex-col items-center justify-center px-1">
-                                    <div class="bg-black/60 rounded-lg py-1.5 px-3 md:py-2 md:px-5 border border-white/10 shadow-inner whitespace-nowrap">
-                                        <span class="font-sport text-2xl md:text-4xl text-white tracking-wider leading-none">${scoreA} - ${scoreB}</span>
-                                    </div>
-                                    <div class="mt-2">${resultBadge}</div>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">
-                                    ${logoB}
-                                    <span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamB}">${teamB}</span>
-                                </div>
-                            </div>
-                        </div>`;
+                        return `<div class="mlb-card bg-[#0f172a]/95 p-4 rounded-xl border border-white/10 shadow-lg mb-4 hover:border-pega-gold/50 transition duration-300 relative overflow-hidden"><div class="flex items-center justify-between gap-1 relative z-10"><div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">${logoA}<span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamA}">${teamA}</span></div><div class="flex-shrink-0 flex flex-col items-center justify-center px-1"><div class="bg-black/60 rounded-lg py-1.5 px-3 md:py-2 md:px-5 border border-white/10 shadow-inner whitespace-nowrap"><span class="font-sport text-2xl md:text-4xl text-white tracking-wider leading-none">${scoreA} - ${scoreB}</span></div><div class="mt-2">${resultBadge}</div></div><div class="flex flex-col items-center flex-1 min-w-0 text-center px-1">${logoB}<span class="font-black text-white text-[10px] md:text-sm uppercase mt-2 truncate w-full" title="${teamB}">${teamB}</span></div></div></div>`;
                     }).reverse().join('') + `</div>`;
-                } else {
-                    content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-4 text-slate-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><p>Aún no hay resultados registrados para este equipo.</p></div>`;
-                }
-            } catch (error) {
-                content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos resultados para <strong>"${teamName}"</strong>.</p></div>`;
-            }
-            window.refreshIcons();
+                } else { content.innerHTML = `<div class="p-12 text-center text-slate-400 border border-dashed border-white/20 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 mb-4 text-slate-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg><p>Aún no hay resultados registrados para este equipo.</p></div>`; }
+            } catch (error) { content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos resultados para <strong>"${teamName}"</strong>.</p></div>`; } window.refreshIcons();
         };
 
-        window.openTeamRoster = async function(teamName, rosterSheetId, logoUrl = "") {
+        window.openTeamRoster = async function(teamName, rosterSheetId, logoUrl = "", groupName = "") {
             const modal = document.getElementById('teamStatsModal'); const content = document.getElementById('teamStatsContent');
             document.getElementById('modalTeamNameText').textContent = teamName;
             const uploadBtn = document.getElementById('btn-upload-photo'); uploadBtn.onclick = () => window.openTeamForm(teamName); uploadBtn.classList.remove('hidden');
@@ -541,8 +542,7 @@
                                         const pName = row[0] ? row[0].toString() : '';
                                         let playerStats = {}; cols.forEach((c, idx) => { playerStats[c.toUpperCase().trim()] = row[idx] || '0'; });
                                         const statsJson = encodeURIComponent(JSON.stringify(playerStats));
-                                        
-                                        return `<tr class="transition cursor-pointer ${isEligible ? 'bg-green-900/20 text-green-100 hover:bg-green-900/40' : `hover:bg-white/10 ${i%2===0 ? 'bg-white/[0.02]' : ''}`}" onclick="window.showPlayerCard('${pName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${logoUrl}', '${statsJson}')" title="Ver Tarjeta de Jugador">
+                                        return `<tr class="transition cursor-pointer ${isEligible ? 'bg-green-900/20 text-green-100 hover:bg-green-900/40' : `hover:bg-white/10 ${i%2===0 ? 'bg-white/[0.02]' : ''}`}" onclick="window.showPlayerCard('${pName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${logoUrl}', '${statsJson}', '${groupName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="Ver Tarjeta de Jugador">
                                             ${row.map((cell, idx) => {
                                                 let displayCell = cell; const colName = cols[idx] ? cols[idx].toUpperCase() : '';
                                                 if ((colName.includes("AVG") || colName.includes("PCT")) && !isNaN(parseFloat(cell)) && cell.toString().includes('.')) { displayCell = parseFloat(cell) < 1 ? parseFloat(cell).toFixed(3).substring(1) : parseFloat(cell).toFixed(3); }
@@ -554,43 +554,33 @@
             } catch (error) { content.innerHTML = `<div class="p-8 text-center bg-red-900/20 border border-red-500/30 rounded-lg flex flex-col items-center justify-center h-full"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-12 h-12 text-red-400 mx-auto mb-2"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><h4 class="text-white font-bold text-lg mb-1">Sin información disponible</h4><p class="text-slate-400 text-sm">No encontramos la hoja de roster para <strong>"${teamName}"</strong>.</p></div>`; } window.refreshIcons();
         };
 
-        window.showPlayerCard = function(playerName, teamName, logoUrl, statsJsonStr) {
+        window.showPlayerCard = function(playerName, teamName, logoUrl, statsJsonStr, passedGroupName = "") {
             const stats = JSON.parse(decodeURIComponent(statsJsonStr));
             const modal = document.getElementById('playerCardModal');
             const content = document.getElementById('playerCardContent');
-
+            let groupName = passedGroupName;
+            if (!groupName) { const teamInfo = window.globalTeamRegistry[teamName.toUpperCase().trim()]; groupName = teamInfo ? teamInfo.groupName : "Sin Grupo"; }
+            
+            // LLAVE TRIPLE PARA LA FOTO: Grupo_Equipo_Jugador
+            const playerKey = `${groupName.toUpperCase().trim()}_${teamName.toUpperCase().trim()}_${playerName.toUpperCase().trim()}`;
+            const playerPhotoRaw = window.globalPlayerPhotos[playerKey];
+            const playerPhotoFinal = playerPhotoRaw ? window.formatDriveUrl(playerPhotoRaw) : null;
             const finalUrl = window.formatDriveUrl(logoUrl);
             const teamLogoHtml = finalUrl ? `<img src="${finalUrl}" class="w-12 h-12 object-contain drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />` : '';
+            const playerAvatarHtml = playerPhotoFinal
+                ? `<div class="w-full h-full relative flex items-center justify-center bg-slate-800"><img src="${playerPhotoFinal}" referrerpolicy="no-referrer" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" /><div style="display:none;" class="w-full h-full items-center justify-center bg-slate-800"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg></div></div>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>`;
 
             const getStat = (keys) => {
                 for (let k of keys) {
-                    let foundKey = Object.keys(stats).find(key => {
-                        const cleanKey = key.replace(/[^A-Z0-9]/gi, '');
-                        return cleanKey === k;
-                    });
+                    let foundKey = Object.keys(stats).find(key => { const cleanKey = key.replace(/[^A-Z0-9]/gi, ''); return cleanKey === k; });
                     if (foundKey && stats[foundKey] !== '') return stats[foundKey];
                 }
                 return '0';
             };
-
-            let rawAvg = getStat(['AVG', 'PRO']);
-            let avgNum = parseFloat(rawAvg);
-            let avg = ".000";
-            if (!isNaN(avgNum)) {
-                if (avgNum >= 1) {
-                    avg = avgNum.toFixed(3); 
-                } else {
-                    avg = avgNum.toFixed(3).substring(1); 
-                }
-            }
-            
-            const hr = getStat(['HR', 'JRS']);
-            const h = getStat(['H', 'HITS']);
-            const h2 = getStat(['H2', '2B']);
-            const h3 = getStat(['H3', '3B']);
-            const vb = getStat(['VB', 'AB']);
-            const bb = getStat(['BB']);
-            const vl = getStat(['VL', 'SO', 'K']); 
+            let rawAvg = getStat(['AVG', 'PRO']); let avgNum = parseFloat(rawAvg); let avg = ".000";
+            if (!isNaN(avgNum)) { if (avgNum >= 1) { avg = avgNum.toFixed(3); } else { avg = avgNum.toFixed(3).substring(1); } }
+            const hr = getStat(['HR', 'JRS']), h = getStat(['H', 'HITS']), h2 = getStat(['H2', '2B']), h3 = getStat(['H3', '3B']), vb = getStat(['VB', 'AB']), bb = getStat(['BB']), vl = getStat(['VL', 'SO', 'K']); 
 
             content.innerHTML = `
                 <div class="relative bg-[#1e3a8a] h-28 flex justify-between items-start p-4 overflow-hidden border-b border-[#fbbf24]/30">
@@ -600,62 +590,27 @@
                     </button>
                     <div class="relative z-10">${teamLogoHtml}</div>
                 </div>
-                
                 <div class="relative px-5 pb-6 flex flex-col items-center -mt-16 bg-gradient-to-b from-[#0f172a] to-black">
                     <div class="relative mb-3 group">
                         <div class="w-32 h-32 rounded-full bg-slate-800 border-[5px] border-[#0f172a] ring-2 ring-pega-gold shadow-2xl flex items-center justify-center overflow-hidden relative z-10">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
+                            ${playerAvatarHtml}
                         </div>
-                        <button onclick="window.openPlayerForm('${playerName.replace(/'/g, "\\'")}')" class="absolute bottom-0 right-0 bg-pega-gold p-3 rounded-full shadow-[0_0_15px_rgba(251,191,36,0.6)] hover:scale-110 transition border-4 border-[#0f172a] z-20" title="Subir Foto del Jugador">
+                        <button onclick="window.openPlayerForm('${playerName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${groupName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" class="absolute bottom-0 right-0 bg-pega-gold p-3 rounded-full shadow-[0_0_15px_rgba(251,191,36,0.6)] hover:scale-110 transition border-4 border-[#0f172a] z-20" title="Subir Foto del Jugador">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
                         </button>
                     </div>
-                    
                     <h2 class="text-2xl md:text-3xl font-sport text-white tracking-wide uppercase text-center leading-tight drop-shadow-md px-2">${playerName}</h2>
                     <p class="text-xs text-pega-gold font-bold tracking-[0.2em] uppercase mb-6 text-center">${teamName}</p>
-
                     <div class="w-full bg-white/5 border border-white/10 rounded-xl p-5 shadow-inner">
-                        <div class="flex items-center justify-center gap-2 mb-4 pb-3 border-b border-white/10">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pega-gold"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-                            <h4 class="text-xs text-slate-300 font-bold uppercase tracking-widest">Temporada Actual</h4>
-                        </div>
-                        
-                        <div class="flex justify-around mb-6">
-                            <div class="text-center w-1/2 border-r border-white/10">
-                                <div class="text-4xl md:text-5xl font-sport text-white drop-shadow">${avg}</div>
-                                <div class="text-[10px] text-pega-gold font-bold uppercase tracking-wider mt-1">AVG</div>
-                            </div>
-                            <div class="text-center w-1/2">
-                                <div class="text-4xl md:text-5xl font-sport text-white drop-shadow">${hr}</div>
-                                <div class="text-[10px] text-pega-gold font-bold uppercase tracking-wider mt-1">HR</div>
-                            </div>
-                        </div>
-
+                        <div class="flex items-center justify-center gap-2 mb-4 pb-3 border-b border-white/10"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pega-gold"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg><h4 class="text-xs text-slate-300 font-bold uppercase tracking-widest">Temporada Actual</h4></div>
+                        <div class="flex justify-around mb-6"><div class="text-center w-1/2 border-r border-white/10"><div class="text-4xl md:text-5xl font-sport text-white drop-shadow">${avg}</div><div class="text-[10px] text-pega-gold font-bold uppercase tracking-wider mt-1">AVG</div></div><div class="text-center w-1/2"><div class="text-4xl md:text-5xl font-sport text-white drop-shadow">${hr}</div><div class="text-[10px] text-pega-gold font-bold uppercase tracking-wider mt-1">HR</div></div></div>
                         <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${vb}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">VB</div>
-                            </div>
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${h}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H</div>
-                            </div>
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${bb}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">BB</div>
-                            </div>
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${h2}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H2</div>
-                            </div>
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${h3}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H3</div>
-                            </div>
-                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner">
-                                <div class="text-lg font-black text-white leading-none">${vl}</div>
-                                <div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">VL</div>
-                            </div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${vb}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">VB</div></div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${h}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H</div></div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${bb}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">BB</div></div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${h2}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H2</div></div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${h3}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">H3</div></div>
+                            <div class="bg-black/40 rounded-lg py-2 border border-white/5 shadow-inner"><div class="text-lg font-black text-white leading-none">${vl}</div><div class="text-[9px] text-slate-400 font-bold uppercase tracking-wide mt-1">VL</div></div>
                         </div>
                     </div>
                 </div>
@@ -667,42 +622,27 @@
             const teamInfo = window.globalTeamRegistry[teamName.toUpperCase().trim()];
             const modal = document.getElementById('playerCardModal');
             const content = document.getElementById('playerCardContent');
-            
-            if (!teamInfo) {
-                window.showToast("No se encontró el registro de " + teamName, "warning");
-                window.showPlayerCard(playerName, teamName, "", encodeURIComponent(JSON.stringify({})));
-                return;
-            }
-            
+            if (!teamInfo) { window.showToast("No se encontró el registro de " + teamName, "warning"); window.showPlayerCard(playerName, teamName, "", encodeURIComponent(JSON.stringify({}))); return; }
             content.innerHTML = `<div class="p-12 text-center flex flex-col items-center justify-center bg-[#0f172a] h-64"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-10 h-10 text-pega-gold animate-spin mb-4"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><p class="text-slate-400 font-sport text-xl tracking-wide">BUSCANDO ESTADÍSTICAS...</p></div>`;
             if(!modal.open) modal.showModal();
-
             try {
                 const response = await fetch(`https://docs.google.com/spreadsheets/d/${teamInfo.rosterId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(teamInfo.name)}`);
                 if (!response.ok) throw new Error("Roster no encontrado");
-                
                 const txt = await response.text();
                 const json = JSON.parse(txt.substring(47).slice(0, -2));
-                
                 let cols = json.table.cols.map(c => c.label || c.id).map(c => c.replace(/.* J\.$/, 'J.')); 
                 let rows = json.table.rows.map(r => r.c.map(cell => cell ? (cell.v || cell.f || '') : ''));
-                
                 let cleanPlayerName = playerName.toUpperCase().trim();
                 let playerRow = rows.find(r => r[0] && r[0].toString().toUpperCase().trim() === cleanPlayerName);
-                
                 if (playerRow) {
-                    let playerStats = {}; 
-                    cols.forEach((c, idx) => { playerStats[c.toUpperCase().trim()] = playerRow[idx] || '0'; });
+                    let playerStats = {}; cols.forEach((c, idx) => { playerStats[c.toUpperCase().trim()] = playerRow[idx] || '0'; });
                     const statsJson = encodeURIComponent(JSON.stringify(playerStats));
-                    window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, statsJson);
+                    window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, statsJson, teamInfo.groupName);
                 } else {
-                    window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, encodeURIComponent(JSON.stringify({})));
+                    window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, encodeURIComponent(JSON.stringify({})), teamInfo.groupName);
                     window.showToast("Sin estadísticas detalladas en roster.", "warning");
                 }
-            } catch (error) {
-                window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, encodeURIComponent(JSON.stringify({})));
-                window.showToast("Error al cargar detalles extra.", "error");
-            }
+            } catch (error) { window.showPlayerCard(playerName, teamInfo.name, teamInfo.logo, encodeURIComponent(JSON.stringify({})), teamInfo.groupName); window.showToast("Error al cargar detalles extra.", "error"); }
         };
 
         window.renderTabs = function(filterType) {
@@ -723,10 +663,13 @@
         };
 
         window.loadCurrentTab = async function(forceRefresh = false) {
-            const container = document.getElementById('data-container'); const loader = document.getElementById('loader'); const activeTab = window.TABS.find(t => t.id === window.currentTabId);
+            const activeTab = window.TABS.find(t => t.id === window.currentTabId) || null;
+            if (!activeTab) { if (forceRefresh) { window.showToast("Sincronizando base de datos...", "info"); window.loadPlayerPhotos(true); window.buildGlobalRegistry(); } return; }
+            const container = document.getElementById('data-container'); const loader = document.getElementById('loader'); 
             container.innerHTML = ''; loader.style.display = 'block'; document.getElementById('analysis-result').classList.add('hidden'); 
             const recentResultsContainer = document.getElementById('recent-results');
             if (activeTab.resultsGid) { recentResultsContainer.classList.remove('hidden'); window.loadRecentResults(forceRefresh); } else { recentResultsContainer.classList.add('hidden'); }
+            if (forceRefresh) { window.loadPlayerPhotos(true); }
             try {
                 let rows = window.parseCSV(await window.fetchWithCache(`${window.BASE_SHEET_URL}?gid=${activeTab.gid}&single=true&output=csv`, forceRefresh));
                 if (activeTab.type === 'leader') { window.renderGroupedLeaderBoard(window.processLeaderData(rows.slice(0, 45), activeTab), activeTab); } 
@@ -736,51 +679,28 @@
                     window.globalData = cleanRows; window.renderStandings(cleanRows); window.loadedTeams = cleanRows.map(r => r[2]); window.updateUploadOptions();
                 }
                 if(forceRefresh) window.showToast("Datos actualizados", "success");
-            } catch (error) { 
-                container.innerHTML = `<div class="bg-red-900/50 border border-red-500 text-white p-6 rounded-xl text-center"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 mx-auto mb-2 text-red-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg><p>Conexión interrumpida con el Servidor.</p><p class="text-xs text-red-300 mt-2 font-mono">${error.message}</p></div>`; 
-            } 
+            } catch (error) { container.innerHTML = `<div class="bg-red-900/50 border border-red-500 text-white p-6 rounded-xl text-center"><svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8 mx-auto mb-2 text-red-400"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg><p>Conexión interrumpida con el Servidor.</p><p class="text-xs text-red-300 mt-2 font-mono">${error.message}</p></div>`; } 
             finally { loader.style.display = 'none'; window.refreshIcons(); }
         };
 
         window.loadRecentResults = async function(forceRefresh = false) {
             const scroller = document.getElementById('results-scroller'); scroller.innerHTML = `<div class="text-white text-xs p-4"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>`;
             try {
-                const resultsGid = window.TABS.find(t => t.id === window.currentTabId).resultsGid; if (!resultsGid) return; 
+                const activeTab = window.TABS.find(t => t.id === window.currentTabId) || null;
+                if (!activeTab || !activeTab.resultsGid) { scroller.innerHTML = ''; return; }
+                const resultsGid = activeTab.resultsGid; 
                 const last5 = window.parseCSV(await window.fetchWithCache(`${window.BASE_RESULTS_SHEET_URL}?gid=${resultsGid}&single=true&output=csv`, forceRefresh)).filter(r => r[0] && r[0].trim() !== "").slice(-5).reverse(); 
-                
                 scroller.innerHTML = last5.map(match => {
                     const [teamA, scoreA, scoreB, teamB] = match;
                     const urlA = window.formatDriveUrl((window.globalTeamRegistry[teamA.toUpperCase()] || {}).logo); const urlB = window.formatDriveUrl((window.globalTeamRegistry[teamB.toUpperCase()] || {}).logo);
-                    const logoA = urlA ? `<img src="${urlA}" class="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow" onerror="window.handleImageError(this, '${teamA}')">` : window.createAvatarHtml(teamA, "w-8 h-8 md:w-10 md:h-10");
-                    const logoB = urlB ? `<img src="${urlB}" class="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow" onerror="window.handleImageError(this, '${teamB}')">` : window.createAvatarHtml(teamB, "w-8 h-8 md:w-10 md:h-10");
-                    return `
-                        <div class="mlb-card bg-[#0f172a]/95 p-3 md:p-4 rounded-xl min-w-[300px] md:min-w-[340px] border border-white/10 shadow-lg transform hover:-translate-y-1 transition duration-300 group">
-                            <div class="flex items-center justify-between gap-1 md:gap-2">
-                                <div class="flex flex-col items-center flex-1 min-w-0 px-1">
-                                    ${logoA}
-                                    <span class="font-black text-white text-[10px] md:text-xs uppercase truncate w-full text-center mt-1" title="${teamA}">${teamA}</span>
-                                </div>
-                                <div class="flex-shrink-0 flex justify-center px-1">
-                                    <div class="bg-black/60 rounded-lg py-1 px-2 md:px-4 border border-pega-gold/40 shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition whitespace-nowrap">
-                                        <span class="font-sport text-2xl md:text-3xl text-pega-gold tracking-wider leading-none">${scoreA} - ${scoreB}</span>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col items-center flex-1 min-w-0 px-1">
-                                    ${logoB}
-                                    <span class="font-black text-white text-[10px] md:text-xs uppercase truncate w-full text-center mt-1" title="${teamB}">${teamB}</span>
-                                </div>
-                            </div>
-                        </div>`;
+                    const logoA = urlA ? `<img src="${urlA}" class="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow" onerror="window.handleImageError(this, '${teamA.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">` : window.createAvatarHtml(teamA, "w-8 h-8 md:w-10 md:h-10");
+                    const logoB = urlB ? `<img src="${urlB}" class="w-8 h-8 md:w-10 md:h-10 object-contain drop-shadow" onerror="window.handleImageError(this, '${teamB.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')">` : window.createAvatarHtml(teamB, "w-8 h-8 md:w-10 md:h-10");
+                    return `<div class="mlb-card bg-[#0f172a]/95 p-3 md:p-4 rounded-xl min-w-[300px] md:min-w-[340px] border border-white/10 shadow-lg transform hover:-translate-y-1 transition duration-300 group"><div class="flex items-center justify-between gap-1 md:gap-2"><div class="flex flex-col items-center flex-1 min-w-0 px-1">${logoA}<span class="font-black text-white text-[10px] md:text-xs uppercase truncate w-full text-center mt-1" title="${teamA}">${teamA}</span></div><div class="flex-shrink-0 flex justify-center px-1"><div class="bg-black/60 rounded-lg py-1 px-2 md:px-4 border border-pega-gold/40 shadow-[0_0_15px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition whitespace-nowrap"><span class="font-sport text-2xl md:text-3xl text-pega-gold tracking-wider leading-none">${scoreA} - ${scoreB}</span></div></div><div class="flex flex-col items-center flex-1 min-w-0 px-1">${logoB}<span class="font-black text-white text-[10px] md:text-xs uppercase truncate w-full text-center mt-1" title="${teamB}">${teamB}</span></div></div></div>`;
                 }).join('') || `<div class="text-slate-500 text-xs italic p-2">Sin resultados recientes.</div>`;
             } catch (e) { scroller.innerHTML = `<div class="text-red-400 text-xs p-2">Error resultados.</div>`; }
         };
 
-        window.updateUploadOptions = function() { 
-            const teamSelect = document.getElementById('teamSelect');
-            if (teamSelect && window.loadedTeams.length > 0) {
-                teamSelect.innerHTML = '<option value="">Selecciona...</option>' + window.loadedTeams.map(t => `<option value="${t}">${t}</option>`).join(''); 
-            }
-        };
+        window.updateUploadOptions = function() { const teamSelect = document.getElementById('teamSelect'); if (teamSelect && window.loadedTeams.length > 0) { teamSelect.innerHTML = '<option value="">Selecciona...</option>' + window.loadedTeams.map(t => `<option value="${t}">${t}</option>`).join(''); } };
 
         window.preloadLeaders = async function() {
             try {
@@ -818,14 +738,14 @@
         };
 
         window.renderStandings = function(data) {
-            const container = document.getElementById('data-container'); const activeTab = window.TABS.find(t => t.id === window.currentTabId);
+            const container = document.getElementById('data-container'); const activeTab = window.TABS.find(t => t.id === window.currentTabId) || null; const resGid = activeTab ? activeTab.resultsGid : '0';
             setTimeout(() => { const tc = document.getElementById('main-table-container'); if(tc) { tc.addEventListener('scroll', () => { if (tc.scrollLeft > 5) tc.classList.add('is-scrolling'); else tc.classList.remove('is-scrolling'); }); } }, 100);
             container.innerHTML = `<div class="mlb-card rounded-xl overflow-hidden shadow-2xl relative"><div id="main-table-container" class="table-container custom-scrollbar"><table class="w-full whitespace-nowrap border-collapse"><thead class="bg-gradient-to-r from-pega-navy to-black text-white font-[Teko] border-b border-[#fbbf24]/50"><tr><th class="sticky-col px-3 py-3 text-left tracking-wider text-sm md:text-xl font-normal text-slate-200">EQUIPO</th>${['JJ', 'JG', 'JE', 'JP', 'CF', 'CC', 'DIF'].map(h => `<th class="px-2 py-3 text-center tracking-wider text-xs md:text-xl font-normal text-slate-400">${h}</th>`).join('')}</tr></thead><tbody class="divide-y divide-white/5">${data.map(row => {
                 const pos = row[0]; let rowClass = 'hover:bg-white/5 transition text-center font-medium text-slate-300'; let posBadge = 'bg-slate-700 text-slate-300';
                 if(pos==1) { posBadge='gold-gradient text-black shadow-[0_0_10px_rgba(251,191,36,0.5)]'; rowClass += ' bg-yellow-500/5'; } if(pos==2) posBadge='silver-gradient text-black'; if(pos==3) posBadge='bronze-gradient text-white';
                 const teamName = row[2] || '-'; const rawLogoUrl = row[1]; const finalUrl = window.formatDriveUrl(rawLogoUrl);
                 let logoHtml = finalUrl ? `<img src="${finalUrl}" class="w-8 h-8 md:w-12 md:h-12 object-contain flex-shrink-0 drop-shadow" referrerpolicy="no-referrer" onerror="window.handleImageError(this, '${teamName.replace(/'/g, "\\'")}')">` : window.createAvatarHtml(teamName, "w-8 h-8 md:w-12 md:h-12 flex-shrink-0");
-                return `<tr class="${rowClass}"><td class="sticky-col px-2 py-2 min-w-[200px] md:min-w-[300px]"><div class="flex items-center gap-2 md:gap-3"><span class="inline-flex w-5 h-5 md:w-7 md:h-7 rounded items-center justify-center text-[10px] md:text-sm font-black flex-shrink-0 ${posBadge}">${pos}</span>${logoHtml}<div onclick="window.openTeamResults('${teamName.replace(/'/g, "\\'")}', '${activeTab.resultsGid}', '${rawLogoUrl}')" class="cursor-pointer hover:text-pega-gold transition-colors font-sport font-bold text-white text-base md:text-2xl tracking-wide uppercase truncate leading-none pt-1" title="Ver Estadísticas del Equipo">${teamName}</div></div></td><td class="px-2 py-3 text-center text-xs md:text-base font-bold text-slate-200">${row[3]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-black text-green-400">${row[4]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-bold text-slate-300">${row[5]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-black text-red-400">${row[6]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-sm text-slate-400">${row[7]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-sm text-slate-400">${row[8]||'-'}</td><td class="px-2 py-3 text-center"><span class="font-bold text-white text-[11px] md:text-sm tracking-widest bg-white/10 rounded px-2 py-1">${row[9]||'-'}</span></td></tr>`;
+                return `<tr class="${rowClass}"><td class="sticky-col px-2 py-2 min-w-[200px] md:min-w-[300px]"><div class="flex items-center gap-2 md:gap-3"><span class="inline-flex w-5 h-5 md:w-7 md:h-7 rounded items-center justify-center text-[10px] md:text-sm font-black flex-shrink-0 ${posBadge}">${pos}</span>${logoHtml}<div onclick="window.openTeamResults('${teamName.replace(/'/g, "\\'").replace(/"/g, "&quot;")}', '${resGid}', '${rawLogoUrl}')" class="cursor-pointer hover:text-pega-gold transition-colors font-sport font-bold text-white text-base md:text-2xl tracking-wide uppercase truncate leading-none pt-1" title="Ver Estadísticas del Equipo">${teamName}</div></div></td><td class="px-2 py-3 text-center text-xs md:text-base font-bold text-slate-200">${row[3]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-black text-green-400">${row[4]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-bold text-slate-300">${row[5]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-base font-black text-red-400">${row[6]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-sm text-slate-400">${row[7]||'-'}</td><td class="px-2 py-3 text-center text-xs md:text-sm text-slate-400">${row[8]||'-'}</td><td class="px-2 py-3 text-center"><span class="font-bold text-white text-[11px] md:text-sm tracking-widest bg-white/10 rounded px-2 py-1">${row[9]||'-'}</span></td></tr>`;
             }).join('')}</tbody></table></div></div>`;
         };
 
@@ -857,34 +777,21 @@
             }, 800); 
         };
 
-        window.openUploadModal = function() {
-            window.showToast("Modo Seguro Activo: La subida de imágenes está pausada para depuración.", "info");
-        };
+        window.openUploadModal = function() { window.showToast("Modo Seguro Activo: La subida de imágenes está pausada para depuración.", "info"); };
 
-        // 4. Arranque de la App (ESPERAMOS PARA NO SATURAR EL SERVIDOR)
         function startApp() {
             try {
-                window.refreshIcons();
-                window.goHome();
-                
-                // Empezamos la carga silenciosa después de que la tabla principal cargó
+                window.refreshIcons(); window.goHome();
                 setTimeout(() => {
                     window.preloadLeaders(); 
-                    
-                    // Cargamos los logos con 1 segundo de retraso para no bloquear Google Sheets
                     setTimeout(() => {
+                        window.loadPlayerPhotos(true);
                         window.buildGlobalRegistry(); 
                     }, 1000);
-
                 }, 500); 
-
-            } catch (e) {
-                alert("Error al iniciar: " + e.message);
-            }
+            } catch (e) { alert("Error al iniciar: " + e.message); }
         }
-
-        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startApp); } 
-        else { startApp(); }
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', startApp); } else { startApp(); }
     </script>
 </body>
 </html>
